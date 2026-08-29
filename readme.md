@@ -766,9 +766,3 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | GET    | `/api/localizacao/distancia`       | Calcula distância entre o usuário e um estabelecimento |
 
 > Observação: os nomes e a organização exata das rotas (versionamento como `/api/v1/...`, nomenclatura em inglês, etc.) poderão ser ajustados conforme a definição final da arquitetura do backend (seção 12). Esta lista tem como objetivo mapear, a partir das telas do protótipo, todos os recursos que a API precisará disponibilizar para o MVP e para as fases futuras do roadmap.
-
----
-
-# 22. Licença
-
-A licença do projeto ainda será definida.
