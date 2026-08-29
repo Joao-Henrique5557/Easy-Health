@@ -656,6 +656,119 @@ O projeto encontra-se na etapa de definição da proposta, requisitos, estratég
 
 ---
 
-# 21. Licença
+# 21. Rotas de API
+
+Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home, primeiros socorros, busca de atendimento, modo emergência, perfil, agendamento, histórico de saúde, notificações e favoritos), o backend do Easy Health precisará expor, no mínimo, as rotas REST listadas abaixo. Todas as rotas (exceto autenticação e conteúdo público) devem exigir um token de acesso válido (Bearer Token / JWT).
+
+## 21.1 Autenticação (login, cadastro, recuperação de senha)
+
+| Método | Rota                        | Descrição                                    |
+| ------ | --------------------------- | -------------------------------------------- |
+| POST   | `/api/auth/register`        | Cria uma nova conta de usuário (cadastro)    |
+| POST   | `/api/auth/login`           | Autentica o usuário e retorna o token        |
+| POST   | `/api/auth/logout`          | Invalida a sessão/token atual                |
+| POST   | `/api/auth/refresh-token`   | Gera um novo token a partir do refresh token |
+| POST   | `/api/auth/forgot-password` | Envia código/link de recuperação de senha    |
+| POST   | `/api/auth/reset-password`  | Redefine a senha usando o código enviado     |
+| POST   | `/api/auth/verify-email`    | Confirma o e-mail cadastrado                 |
+
+## 21.2 Perfil do usuário
+
+| Método | Rota                         | Descrição                                  |
+| ------ | ---------------------------- | ------------------------------------------ |
+| GET    | `/api/users/me`              | Retorna os dados do usuário logado         |
+| PUT    | `/api/users/me`              | Atualiza dados do perfil (editar-perfil)   |
+| PATCH  | `/api/users/me/avatar`       | Atualiza a foto de perfil                  |
+| PUT    | `/api/users/me/password`     | Altera a senha do usuário logado           |
+| DELETE | `/api/users/me`              | Exclui a conta do usuário                  |
+| GET    | `/api/users/me/preferencias` | Retorna preferências/configurações do app  |
+| PUT    | `/api/users/me/preferencias` | Atualiza preferências/configurações do app |
+
+## 21.3 Primeiros socorros
+
+| Método | Rota                                   | Descrição                                    |
+| ------ | -------------------------------------- | -------------------------------------------- |
+| GET    | `/api/primeiros-socorros`              | Lista todos os guias de primeiros socorros   |
+| GET    | `/api/primeiros-socorros/categorias`   | Lista categorias (engasgo, queimadura, etc.) |
+| GET    | `/api/primeiros-socorros/:id`          | Retorna o detalhe de um guia específico      |
+| GET    | `/api/primeiros-socorros/busca?query=` | Busca guias por palavra-chave                |
+
+## 21.4 Busca de atendimento / Estabelecimentos
+
+| Método | Rota                                             | Descrição                                                                           |
+| ------ | ------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| GET    | `/api/estabelecimentos`                          | Lista estabelecimentos (hospitais, clínicas, UBS, UPAs, laboratórios)               |
+| GET    | `/api/estabelecimentos/busca`                    | Busca com filtros (distância, especialidade, tipo, preço, disponibilidade, horário) |
+| GET    | `/api/estabelecimentos/:id`                      | Retorna o detalhe de um estabelecimento                                             |
+| GET    | `/api/estabelecimentos/:id/especialidades`       | Lista especialidades oferecidas pelo estabelecimento                                |
+| GET    | `/api/estabelecimentos/:id/precos`               | Lista preços de consultas/serviços do estabelecimento                               |
+| GET    | `/api/estabelecimentos/:id/horarios-disponiveis` | Lista horários disponíveis para agendamento                                         |
+| GET    | `/api/especialidades`                            | Lista geral de especialidades médicas (para filtros)                                |
+
+## 21.5 Modo de emergência
+
+| Método | Rota                                 | Descrição                                              |
+| ------ | ------------------------------------ | ------------------------------------------------------ |
+| GET    | `/api/emergencia/hospitais-proximos` | Lista hospitais/UPAs mais próximos do usuário          |
+| GET    | `/api/emergencia/contatos`           | Retorna contatos de emergência (SAMU, Bombeiros, etc.) |
+| GET    | `/api/emergencia/rotas`              | Retorna rota até o estabelecimento mais próximo        |
+
+## 21.6 Agendamento
+
+| Método | Rota                              | Descrição                                       |
+| ------ | --------------------------------- | ----------------------------------------------- |
+| GET    | `/api/agendamentos`               | Lista os agendamentos do usuário logado         |
+| POST   | `/api/agendamentos`               | Cria um novo agendamento                        |
+| GET    | `/api/agendamentos/:id`           | Retorna o detalhe/confirmação de um agendamento |
+| PUT    | `/api/agendamentos/:id`           | Reagenda (altera data/horário) um agendamento   |
+| DELETE | `/api/agendamentos/:id`           | Cancela um agendamento                          |
+| POST   | `/api/agendamentos/:id/confirmar` | Confirma o agendamento realizado                |
+
+## 21.7 Histórico de saúde
+
+| Método | Rota                            | Descrição                                      |
+| ------ | ------------------------------- | ---------------------------------------------- |
+| GET    | `/api/historico/consultas`      | Lista o histórico de consultas do usuário      |
+| GET    | `/api/historico/consultas/:id`  | Retorna o detalhe de uma consulta              |
+| POST   | `/api/historico/consultas`      | Adiciona uma consulta manualmente ao histórico |
+| GET    | `/api/historico/exames`         | Lista o histórico de exames                    |
+| GET    | `/api/historico/exames/:id`     | Retorna o detalhe/resultado de um exame        |
+| POST   | `/api/historico/exames`         | Adiciona um exame ao histórico                 |
+| GET    | `/api/historico/vacinas`        | Lista o histórico de vacinas                   |
+| GET    | `/api/historico/medicamentos`   | Lista medicamentos em uso/histórico            |
+| GET    | `/api/historico/documentos`     | Lista documentos médicos do usuário            |
+| POST   | `/api/historico/documentos`     | Faz upload de um documento médico              |
+| DELETE | `/api/historico/documentos/:id` | Remove um documento médico                     |
+
+## 21.8 Favoritos
+
+| Método | Rota                 | Descrição                                 |
+| ------ | -------------------- | ----------------------------------------- |
+| GET    | `/api/favoritos`     | Lista os estabelecimentos favoritados     |
+| POST   | `/api/favoritos`     | Adiciona um estabelecimento aos favoritos |
+| DELETE | `/api/favoritos/:id` | Remove um estabelecimento dos favoritos   |
+
+## 21.9 Notificações
+
+| Método | Rota                                   | Descrição                              |
+| ------ | -------------------------------------- | -------------------------------------- |
+| GET    | `/api/notificacoes`                    | Lista as notificações do usuário       |
+| PUT    | `/api/notificacoes/:id/lida`           | Marca uma notificação como lida        |
+| PUT    | `/api/notificacoes/marcar-todas-lidas` | Marca todas as notificações como lidas |
+| DELETE | `/api/notificacoes/:id`                | Remove uma notificação                 |
+
+## 21.10 Localização / Mapas (uso interno, integração com serviços externos)
+
+| Método | Rota                               | Descrição                                              |
+| ------ | ---------------------------------- | ------------------------------------------------------ |
+| GET    | `/api/localizacao/geocode`         | Converte endereço em coordenadas                       |
+| GET    | `/api/localizacao/reverse-geocode` | Converte coordenadas em endereço                       |
+| GET    | `/api/localizacao/distancia`       | Calcula distância entre o usuário e um estabelecimento |
+
+> Observação: os nomes e a organização exata das rotas (versionamento como `/api/v1/...`, nomenclatura em inglês, etc.) poderão ser ajustados conforme a definição final da arquitetura do backend (seção 12). Esta lista tem como objetivo mapear, a partir das telas do protótipo, todos os recursos que a API precisará disponibilizar para o MVP e para as fases futuras do roadmap.
+
+---
+
+# 22. Licença
 
 A licença do projeto ainda será definida.
