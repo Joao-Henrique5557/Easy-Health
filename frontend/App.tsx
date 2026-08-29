@@ -5,14 +5,11 @@ import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
 import {
   useFonts,
-  Fraunces_600SemiBold,
-  Fraunces_700Bold,
-} from "@expo-google-fonts/fraunces";
-import {
   Inter_400Regular,
   Inter_500Medium,
   Inter_600SemiBold,
   Inter_700Bold,
+  Inter_800ExtraBold,
 } from "@expo-google-fonts/inter";
 
 import { colors } from "@/theme/colors";
@@ -23,13 +20,15 @@ import { notificationService } from "@/services/notificationService";
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function App() {
+  // Correção: a versão anterior carregava Fraunces (serifada), que não
+  // existe no design real. O design usa só uma sans-serif (Inter) em
+  // vários pesos, então é só isso que carregamos agora.
   const [fontsLoaded] = useFonts({
-    Fraunces_600SemiBold,
-    Fraunces_700Bold,
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    Inter_800ExtraBold,
   });
 
   const [checkingSession, setCheckingSession] = useState(true);

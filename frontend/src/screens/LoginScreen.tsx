@@ -1,9 +1,13 @@
 import React, { useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, Text, TextInput, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { colors } from "@/theme/colors";
 import { fonts, spacing } from "@/theme/typography";
+import { inputStyle } from "@/theme/inputStyle";
+import { PrimaryButton, InlineLink } from "@/components/Buttons";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import { authService } from "@/services/authService";
 import type { RootStackParamList } from "@/navigation/types";
 
@@ -11,6 +15,7 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: () => void }
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleLogin() {
@@ -29,64 +34,113 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: () => void }
     }
   }
 
+  function handleSocialLogin(provider: "Google" | "Apple") {
+    // Login social é um trabalho de backend separado (OAuth) — deixado
+    // como placeholder visual até a integração real ser implementada.
+    Alert.alert("Em breve", `Login com ${provider} ainda não está disponível nesta versão.`);
+  }
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1, backgroundColor: colors.bg, justifyContent: "center", padding: spacing.xl }}
-    >
-      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: colors.primary, letterSpacing: 1, textTransform: "uppercase" }}>
-        Easy Health
-      </Text>
-      <Text style={{ fontFamily: fonts.display, fontSize: 28, color: colors.ink, marginTop: 4, marginBottom: 24 }}>
-        Bem-vindo de volta
-      </Text>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1, backgroundColor: colors.bg }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: spacing.xl, flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <ScreenHeader title="Acessar Conta" onBack={() => navigation.goBack()} />
 
-      <TextInput
-        placeholder="E-mail"
-        placeholderTextColor={colors.inkSoft}
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        style={inputStyle}
-      />
-      <TextInput
-        placeholder="Senha"
-        placeholderTextColor={colors.inkSoft}
-        value={senha}
-        onChangeText={setSenha}
-        secureTextEntry
-        style={inputStyle}
-      />
+        <View style={{ alignItems: "center", marginBottom: 20 }}>
+          <View
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: 18,
+              backgroundColor: colors.primarySoft,
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 14,
+            }}
+          >
+            <Ionicons name="heart" size={24} color={colors.primary} />
+          </View>
+          <Text style={{ fontFamily: fonts.bold, fontSize: 18, color: colors.ink }}>Seja bem-vindo de volta!</Text>
+        </View>
 
-      <Pressable
-        onPress={handleLogin}
-        disabled={loading}
-        style={{ backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: "center", marginTop: 8, opacity: loading ? 0.7 : 1 }}
-      >
-        <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 14, color: colors.white }}>
-          {loading ? "Entrando..." : "Entrar"}
-        </Text>
-      </Pressable>
+        <Text style={{ fontFamily: fonts.semiBold, fontSize: 12, color: colors.ink, marginBottom: 6 }}>E-mail</Text>
+        <TextInput
+          placeholder="maria.silva@email.com"
+          placeholderTextColor={colors.inkFaint}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+          style={[inputStyle, { marginBottom: 14 }]}
+        />
 
-      <Pressable onPress={() => navigation.navigate("Register")} style={{ alignItems: "center", marginTop: 16 }}>
-        <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.primaryDark }}>
-          Não tem conta? Cadastre-se
-        </Text>
-      </Pressable>
+        <Text style={{ fontFamily: fonts.semiBold, fontSize: 12, color: colors.ink, marginBottom: 6 }}>Senha</Text>
+        <View style={{ position: "relative", justifyContent: "center", marginBottom: 8 }}>
+          <TextInput
+            placeholder="••••••••"
+            placeholderTextColor={colors.inkFaint}
+            value={senha}
+            onChangeText={setSenha}
+            secureTextEntry={!showPassword}
+            style={[inputStyle, { paddingRight: 44 }]}
+          />
+          <Pressable onPress={() => setShowPassword((v) => !v)} style={{ position: "absolute", right: 14 }} hitSlop={8}>
+            <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={18} color={colors.inkSoft} />
+          </Pressable>
+        </View>
+
+        <Pressable onPress={() => navigation.navigate("ForgotPassword")} style={{ alignSelf: "flex-end", marginBottom: 20 }}>
+          <Text style={{ fontFamily: fonts.semiBold, fontSize: 12, color: colors.primary }}>Esqueci minha senha</Text>
+        </Pressable>
+
+        <PrimaryButton label="Entrar" loading={loading} onPress={handleLogin} />
+
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginVertical: 20 }}>
+          <View style={{ flex: 1, height: 1, backgroundColor: colors.line }} />
+          <Text style={{ fontFamily: fonts.regular, fontSize: 11.5, color: colors.inkFaint }}>ou entre com</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: colors.line }} />
+        </View>
+
+        <View style={{ flexDirection: "row", gap: 10, marginBottom: 24 }}>
+          <Pressable
+            onPress={() => handleSocialLogin("Google")}
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              borderWidth: 1,
+              borderColor: colors.line,
+              borderRadius: 12,
+              paddingVertical: 12,
+              backgroundColor: colors.panel,
+            }}
+          >
+            <Ionicons name="logo-google" size={16} color={colors.ink} />
+            <Text style={{ fontFamily: fonts.semiBold, fontSize: 13, color: colors.ink }}>Google</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => handleSocialLogin("Apple")}
+            style={{
+              flex: 1,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              borderWidth: 1,
+              borderColor: colors.line,
+              borderRadius: 12,
+              paddingVertical: 12,
+              backgroundColor: colors.panel,
+            }}
+          >
+            <Ionicons name="logo-apple" size={17} color={colors.ink} />
+            <Text style={{ fontFamily: fonts.semiBold, fontSize: 13, color: colors.ink }}>Apple</Text>
+          </Pressable>
+        </View>
+
+        <InlineLink prefix="Não tem conta?" label="Criar conta" onPress={() => navigation.navigate("Register")} />
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const inputStyle = {
-  borderWidth: 1,
-  borderColor: colors.line,
-  borderRadius: 12,
-  paddingHorizontal: 14,
-  paddingVertical: 12,
-  fontFamily: fonts.body,
-  fontSize: 13.5,
-  color: colors.ink,
-  marginBottom: 12,
-  backgroundColor: colors.panel,
-} as const;

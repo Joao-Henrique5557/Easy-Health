@@ -16,8 +16,7 @@ Frontend mobile do Easy Health, incluindo o **Assistente de IA** (navegação gu
 
 ```bash
 npm install
-npm install --save-dev babel-plugin-module-resolver
-npx expo start -c
+npx expo start
 ```
 
 Escaneie o QR code com o app **Expo Go** no Android, ou pressione `a` para abrir num emulador Android.

@@ -1,161 +1,187 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StatusBar, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { colors } from "@/theme/colors";
-import { fonts, spacing } from "@/theme/typography";
-import { useLocation } from "@/hooks/useLocation";
-import { emergencyService, EmergencyContact, NearbyHospital } from "@/services/emergencyService";
+import { fonts, radius, spacing } from "@/theme/typography";
+import { emergencyService } from "@/services/emergencyService";
+import { profileService, UserProfile } from "@/services/profileService";
+import { EMERGENCY_NUMBERS } from "@/config/env";
+import type { RootStackParamList } from "@/navigation/types";
+
+function ActionRow({
+  icon,
+  title,
+  subtitle,
+  danger,
+  onPress,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  subtitle: string;
+  danger?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 14,
+        backgroundColor: danger ? colors.alert : colors.emergencyCard,
+        borderRadius: radius.lg,
+        padding: 16,
+        opacity: pressed ? 0.88 : 1,
+      })}
+    >
+      <View
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          backgroundColor: "rgba(255,255,255,0.15)",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Ionicons name={icon} size={19} color={colors.white} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontFamily: fonts.bold, fontSize: 14.5, color: colors.white }}>{title}</Text>
+        <Text style={{ fontFamily: fonts.regular, fontSize: 11.5, color: danger ? "rgba(255,255,255,0.85)" : colors.emergencyTextSoft }}>
+          {subtitle}
+        </Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={danger ? colors.white : colors.emergencyTextSoft} />
+    </Pressable>
+  );
+}
+
+function FichaRow({ label, value, valueColor, half }: { label: string; value: string; valueColor?: string; half?: boolean }) {
+  return (
+    <View style={{ flex: half ? 1 : undefined }}>
+      <Text style={{ fontFamily: fonts.semiBold, fontSize: 10, color: colors.emergencyTextSoft, letterSpacing: 0.4, marginBottom: 3 }}>
+        {label.toUpperCase()}
+      </Text>
+      <Text style={{ fontFamily: fonts.bold, fontSize: 14.5, color: valueColor ?? colors.white }}>{value}</Text>
+    </View>
+  );
+}
 
 export function EmergencyScreen() {
-  const { coords } = useLocation();
-  const [contacts, setContacts] = useState<EmergencyContact[]>(emergencyService.getDefaultContacts());
-  const [hospital, setHospital] = useState<NearbyHospital | null>(null);
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    emergencyService.getContacts().then(setContacts);
+    profileService.getMe().then(setProfile);
   }, []);
-
-  useEffect(() => {
-    if (!coords) return;
-    emergencyService
-      .getNearbyHospitals(coords)
-      .then((list) => setHospital(list[0] ?? null))
-      .catch(() => setHospital(null));
-  }, [coords]);
 
   // A ÚNICA ação de ligação do app: abre o discador nativo.
   // A ligação em si só ocorre se o usuário confirmar na tela do sistema.
   async function handleCall(numero: string) {
     try {
       await emergencyService.callNumber(numero);
-    } catch (e) {
-      Alert.alert("Não foi possível abrir o discador", "Ligue manualmente para " + numero + ".");
+    } catch {
+      Alert.alert("Não foi possível abrir o discador", `Ligue manualmente para ${numero}.`);
     }
   }
 
+  const idade = profile?.dataNascimento ? profileService.calcularIdade(profile.dataNascimento) : null;
+
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.lg }}>
-      <View
-        style={{
-          backgroundColor: colors.alertSoft,
-          borderWidth: 1,
-          borderColor: "#F3C7B4",
-          borderRadius: 14,
-          padding: 13,
-          marginBottom: 18,
-          flexDirection: "row",
-          gap: 10,
-        }}
-      >
-        <Ionicons name="warning" size={18} color={colors.alertDark} style={{ marginTop: 1 }} />
-        <Text style={{ flex: 1, fontFamily: fonts.body, fontSize: 12, color: colors.alertDark, lineHeight: 17 }}>
-          Este app não liga por você. Toque em um número abaixo para abrir o discador do seu celular — a ligação
-          só acontece se você confirmar.
-        </Text>
-      </View>
+    <View style={{ flex: 1, backgroundColor: colors.emergencyBg }}>
+      <StatusBar barStyle="light-content" />
+      <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingTop: spacing.xl, paddingBottom: 40 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 24 }}>
+          <Pressable onPress={() => navigation.goBack()} hitSlop={10} style={{ width: 32 }}>
+            <Ionicons name="chevron-back" size={22} color={colors.white} />
+          </Pressable>
+          <Text style={{ flex: 1, textAlign: "center", fontFamily: fonts.extraBold, fontSize: 16, color: colors.white, letterSpacing: 0.5 }}>
+            EMERGÊNCIA
+          </Text>
+          <View style={{ width: 32 }} />
+        </View>
 
-      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: colors.primary, letterSpacing: 1, textTransform: "uppercase" }}>
-        Emergência
-      </Text>
-      <Text style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink, marginTop: 4, marginBottom: 16 }}>
-        Ligue agora
-      </Text>
-
-      <View style={{ gap: 8, marginBottom: 24 }}>
-        {contacts.map((c) => (
-          <Pressable
-            key={c.numero}
-            onPress={() => handleCall(c.numero)}
+        <View style={{ alignItems: "center", marginBottom: 26 }}>
+          <View
             style={{
-              flexDirection: "row",
+              width: 84,
+              height: 84,
+              borderRadius: 42,
+              backgroundColor: "rgba(239,68,68,0.18)",
               alignItems: "center",
-              gap: 12,
-              backgroundColor: colors.ink,
-              borderRadius: 14,
-              padding: 14,
+              justifyContent: "center",
+              marginBottom: 16,
             }}
           >
             <View
               style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                backgroundColor: "rgba(255,255,255,0.12)",
+                width: 60,
+                height: 60,
+                borderRadius: 30,
+                backgroundColor: colors.alert,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Ionicons name="call" size={17} color={colors.white} />
+              <Ionicons name="alarm" size={28} color={colors.white} />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13.5, color: colors.white }}>
-                {c.label} — {c.numero}
-              </Text>
-              <Text style={{ fontFamily: fonts.body, fontSize: 11, color: "rgba(255,255,255,0.65)" }}>
-                {c.descricao}
-              </Text>
-            </View>
-          </Pressable>
-        ))}
-      </View>
-
-      <Text
-        style={{
-          fontFamily: fonts.bodyBold,
-          fontSize: 11.5,
-          color: colors.inkSoft,
-          textTransform: "uppercase",
-          letterSpacing: 0.5,
-          marginBottom: 8,
-        }}
-      >
-        Unidade mais próxima
-      </Text>
-
-      {hospital ? (
-        <Pressable
-          onPress={() =>
-            emergencyService.openRouteInMaps(
-              { latitude: coords!.latitude, longitude: coords!.longitude },
-              hospital.nome
-            )
-          }
-          style={{ backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.line, borderRadius: 14, padding: 13, marginBottom: 20 }}
-        >
-          <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.ink }}>{hospital.nome}</Text>
-          <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: colors.inkSoft, marginTop: 2 }}>
-            {hospital.distanciaKm.toFixed(1)} km • {hospital.aberto24h ? "Aberta 24h" : hospital.endereco}
+          </View>
+          <Text style={{ fontFamily: fonts.extraBold, fontSize: 18, color: colors.white, marginBottom: 4 }}>
+            Precisa de ajuda urgente?
           </Text>
-        </Pressable>
-      ) : (
-        <Text style={{ fontFamily: fonts.body, fontSize: 12, color: colors.inkSoft, marginBottom: 20 }}>
-          Ative sua localização para ver a unidade mais próxima.
-        </Text>
-      )}
+          <Text style={{ fontFamily: fonts.medium, fontSize: 12.5, color: "#F87171" }}>
+            Selecione uma das ações imediatas abaixo.
+          </Text>
+        </View>
 
-      <Text
-        style={{
-          fontFamily: fonts.bodyBold,
-          fontSize: 11.5,
-          color: colors.inkSoft,
-          textTransform: "uppercase",
-          letterSpacing: 0.5,
-          marginBottom: 8,
-        }}
-      >
-        Enquanto o socorro não chega
-      </Text>
-      <View style={{ gap: 6 }}>
-        <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.ink, lineHeight: 19 }}>
-          • Mantenha a calma e não deixe a pessoa sozinha.
+        <View style={{ gap: 10, marginBottom: 30 }}>
+          <ActionRow
+            icon="call"
+            title={`Ligar SAMU (${EMERGENCY_NUMBERS.samu})`}
+            subtitle="Chamada de emergência direta"
+            danger
+            onPress={() => handleCall(EMERGENCY_NUMBERS.samu)}
+          />
+          <ActionRow
+            icon="map"
+            title="Hospitais Próximos"
+            subtitle="Rotas de urgência no mapa"
+            onPress={() => navigation.navigate("MainTabs", { screen: "Search", params: { query: "hospital" } })}
+          />
+          <ActionRow
+            icon="medkit"
+            title="Primeiros Socorros"
+            subtitle="Ver instruções rápidas offline"
+            onPress={() => navigation.navigate("FirstAid")}
+          />
+        </View>
+
+        <Text style={{ fontFamily: fonts.bold, fontSize: 14.5, color: colors.white, marginBottom: 12 }}>
+          Ficha Médica do Usuário
         </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.ink, lineHeight: 19 }}>
-          • Descreva com clareza o que está acontecendo ao atendente.
-        </Text>
-        <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.ink, lineHeight: 19 }}>
-          • Consulte o guia de Primeiros Socorros para orientações específicas.
-        </Text>
-      </View>
-    </ScrollView>
+        <View style={{ backgroundColor: colors.emergencyCard, borderRadius: radius.lg, padding: 16 }}>
+          <FichaRow label="Nome do Paciente" value={profile?.nome ?? "—"} />
+          <View style={{ height: 1, backgroundColor: colors.emergencyLine, marginVertical: 14 }} />
+          <View style={{ flexDirection: "row" }}>
+            <FichaRow label="Tipo Sanguíneo" value={profile?.tipoSanguineo ?? "—"} valueColor={colors.alert} half />
+            <FichaRow label="Idade" value={idade !== null ? `${idade} anos` : "—"} half />
+          </View>
+          <View style={{ height: 1, backgroundColor: colors.emergencyLine, marginVertical: 14 }} />
+          <FichaRow label="Alergias Conhecidas" value={profile?.alergias || "Nenhuma informada"} />
+          <View style={{ height: 1, backgroundColor: colors.emergencyLine, marginVertical: 14 }} />
+          <FichaRow
+            label="Contato de Emergência"
+            value={
+              profile?.contatoEmergenciaNome
+                ? `${profile.contatoEmergenciaNome} (${profile.contatoEmergenciaParentesco}) - ${profile.contatoEmergenciaTelefone}`
+                : "Nenhum contato cadastrado"
+            }
+          />
+        </View>
+      </ScrollView>
+    </View>
   );
 }

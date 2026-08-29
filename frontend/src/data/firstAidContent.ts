@@ -2,7 +2,8 @@ export interface FirstAidGuide {
   id: string;
   titulo: string;
   resumo: string;
-  passos: string[];
+  icon: string; // nome do ícone Ionicons
+  passos: string[]; // formato "Título curto: descrição do passo"
 }
 
 // Conteúdo espelhado localmente no app (não só na API) de propósito:
@@ -12,69 +13,99 @@ export interface FirstAidGuide {
 // e sincronize/atualize sempre que houver conexão.
 export const FIRST_AID_GUIDES: FirstAidGuide[] = [
   {
-    id: "engasgo",
-    titulo: "Engasgo",
-    resumo: "Obstrução das vias aéreas por alimento ou objeto.",
+    id: "desmaio",
+    titulo: "Desmaios",
+    resumo: "Perda súbita e breve de consciência.",
+    icon: "help-circle-outline",
     passos: [
-      "Pergunte se a pessoa consegue tossir ou falar — se sim, incentive a tossir com força.",
-      "Se não conseguir respirar, tossir ou falar, ligue para o 192 (SAMU) imediatamente.",
-      "Se você foi treinado, aplique compressões abdominais (manobra de Heimlich) até o objeto sair ou o socorro chegar.",
-      "Não dê tapas nas costas de bebês com a técnica de adultos — o procedimento é diferente para menores de 1 ano.",
+      "Posicione a pessoa: deite-a de costas e eleve as pernas cerca de 30 cm, se não houver suspeita de lesão.",
+      "Garanta ventilação: afrouxe roupas apertadas e mantenha o ambiente arejado.",
+      "Observe o tempo: se não recuperar a consciência em cerca de 1 minuto, ligue para o 192 (SAMU).",
+      "Ao acordar: oriente que se levante devagar; não ofereça comida ou bebida imediatamente.",
     ],
   },
   {
-    id: "sangramento",
-    titulo: "Sangramento intenso",
-    resumo: "Ferimento com perda de sangue significativa.",
+    id: "engasgo",
+    titulo: "Engasgos",
+    resumo: "Obstrução das vias aéreas por alimento ou objeto.",
+    icon: "pulse-outline",
     passos: [
-      "Ligue para o 192 (SAMU) ou peça para alguém ligar enquanto você presta os primeiros cuidados.",
-      "Pressione o ferimento com um pano limpo, com firmeza e continuamente.",
-      "Se possível, eleve o local do ferimento acima do nível do coração.",
-      "Não remova objetos encravados no ferimento — apenas estabilize ao redor.",
+      "Identifique os sinais: verifique se a pessoa consegue tossir ou falar. Se não conseguir e levar as mãos ao pescoço, está engasgada.",
+      "Peça para tossir: estimule a vítima a tossir com força para tentar desalojar o objeto espontaneamente.",
+      "Aplique a Manobra de Heimlich: posicione-se atrás da vítima, feche uma mão sobre a boca do estômago e pressione para dentro e para cima.",
+      "Ligue 192 se não funcionar: se a vítima perder a consciência ou o objeto não sair, ligue imediatamente para o SAMU no 192.",
     ],
   },
   {
     id: "queimadura",
     titulo: "Queimaduras",
     resumo: "Lesão por calor, produto químico ou eletricidade.",
+    icon: "flame-outline",
     passos: [
-      "Afaste a pessoa da fonte de calor com segurança.",
-      "Resfrie a área com água corrente em temperatura ambiente por 10 a 20 minutos.",
-      "Não passe gelo, pasta de dente, manteiga ou outros produtos caseiros na queimadura.",
-      "Procure atendimento médico se a queimadura for extensa, profunda ou em rosto, mãos ou articulações.",
-    ],
-  },
-  {
-    id: "desmaio",
-    titulo: "Desmaio",
-    resumo: "Perda súbita e breve de consciência.",
-    passos: [
-      "Deite a pessoa de costas e eleve as pernas cerca de 30 cm, se não houver suspeita de lesão.",
-      "Afrouxe roupas apertadas e garanta ventilação.",
-      "Se a pessoa não recuperar a consciência em cerca de 1 minuto, ligue para o 192 (SAMU).",
-      "Ao acordar, oriente que se levante devagar; não ofereça comida ou bebida imediatamente.",
+      "Afaste do perigo: retire a pessoa da fonte de calor com segurança.",
+      "Resfrie a área: água corrente em temperatura ambiente por 10 a 20 minutos.",
+      "Evite remédios caseiros: não passe gelo, pasta de dente, manteiga ou outros produtos na queimadura.",
+      "Procure atendimento: se for extensa, profunda ou em rosto, mãos ou articulações, ligue para o 192 (SAMU).",
     ],
   },
   {
     id: "convulsao",
-    titulo: "Convulsão",
+    titulo: "Convulsões",
     resumo: "Crise convulsiva com movimentos involuntários.",
+    icon: "shield-outline",
     passos: [
-      "Proteja a cabeça da pessoa e afaste objetos que possam machucá-la.",
-      "Não segure a pessoa nem coloque nada na boca dela.",
-      "Deite-a de lado assim que possível, para ajudar a manter as vias aéreas livres.",
-      "Ligue para o 192 (SAMU) se a crise durar mais de 5 minutos, se repetir, ou se for a primeira crise da pessoa.",
+      "Proteja a pessoa: afaste objetos que possam machucá-la e proteja a cabeça dela.",
+      "Não a contenha: não segure a pessoa nem coloque nada na boca dela.",
+      "Vire de lado: assim que possível, para ajudar a manter as vias aéreas livres.",
+      "Ligue 192 se: a crise durar mais de 5 minutos, se repetir, ou for a primeira crise da pessoa.",
+    ],
+  },
+  {
+    id: "sangramento",
+    titulo: "Hemorragias",
+    resumo: "Ferimento com perda de sangue significativa.",
+    icon: "warning-outline",
+    passos: [
+      "Peça ajuda: ligue para o 192 (SAMU) ou peça para alguém ligar enquanto você presta os primeiros cuidados.",
+      "Pressione o ferimento: use um pano limpo, com firmeza e continuamente.",
+      "Eleve o local: se possível, mantenha o ferimento acima do nível do coração.",
+      "Não remova objetos: se houver algo encravado, apenas estabilize ao redor, sem retirar.",
     ],
   },
   {
     id: "parada",
-    titulo: "Parada cardiorrespiratória",
+    titulo: "Parada Cardíaca",
     resumo: "Pessoa não responde e não respira normalmente.",
+    icon: "heart-outline",
     passos: [
-      "Ligue imediatamente para o 192 (SAMU) — ou peça para alguém ligar enquanto você age.",
-      "Se você tiver treinamento, inicie compressões torácicas no centro do peito, fortes e rápidas.",
-      "Use um DEA (desfibrilador) se houver um disponível por perto e siga as instruções por voz do aparelho.",
-      "Continue até o socorro especializado assumir.",
+      "Ligue 192 imediatamente: peça para alguém ligar enquanto você inicia os cuidados.",
+      "Inicie compressões: se você tiver treinamento, comprima o centro do peito, forte e rápido.",
+      "Use um DEA se houver: siga as instruções por voz do próprio aparelho.",
+      "Continue os cuidados: até o socorro especializado assumir.",
+    ],
+  },
+  {
+    id: "crises_respiratorias",
+    titulo: "Crises Respiratórias",
+    resumo: "Falta de ar súbita ou crise de asma/bronquite.",
+    icon: "fitness-outline",
+    passos: [
+      "Mantenha sentado: a pessoa deitada pode sentir a falta de ar piorar.",
+      "Afrouxe roupas: libere a região do pescoço e peito.",
+      "Use a bombinha: se a pessoa tiver inalador prescrito, ajude a usá-lo conforme orientação médica dela.",
+      "Ligue 192 se: lábios ou dedos ficarem arroxeados, ou não houver melhora em poucos minutos.",
+    ],
+  },
+  {
+    id: "fraturas",
+    titulo: "Fraturas",
+    resumo: "Suspeita de osso quebrado ou luxação.",
+    icon: "bandage-outline",
+    passos: [
+      "Não movimente: não tente realinhar o osso nem mover a pessoa desnecessariamente.",
+      "Imobilize: use uma tala improvisada, se souber fazer isso com segurança.",
+      "Aplique frio: compressa fria (nunca gelo direto na pele) para reduzir o inchaço.",
+      "Ligue 192 se: houver deformidade grave, exposição óssea ou dor intensa.",
     ],
   },
 ];

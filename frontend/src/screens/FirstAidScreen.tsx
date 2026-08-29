@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { FlatList, Pressable, Text, View, ActivityIndicator } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { colors } from "@/theme/colors";
-import { fonts, spacing } from "@/theme/typography";
+import { fonts, radius, spacing } from "@/theme/typography";
+import { ScreenHeader } from "@/components/ScreenHeader";
 import { firstAidService } from "@/services/firstAidService";
 import type { FirstAidGuide } from "@/data/firstAidContent";
 import type { RootStackParamList } from "@/navigation/types";
@@ -22,47 +23,63 @@ export function FirstAidScreen() {
   }, []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg, padding: spacing.lg }}>
-      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: colors.primary, letterSpacing: 1, textTransform: "uppercase" }}>
-        Educativo
-      </Text>
-      <Text style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink, marginTop: 4 }}>
-        Primeiros Socorros
-      </Text>
-      <Text style={{ fontFamily: fonts.body, fontSize: 13, color: colors.inkSoft, marginTop: 6, marginBottom: 16, lineHeight: 19 }}>
-        Conteúdo informativo, validado por profissionais de saúde. Não substitui atendimento médico.
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.lg, paddingTop: spacing.xl }}>
+      <ScreenHeader title="Primeiros Socorros" onBack={() => navigation.goBack()} />
+
+      <View
+        style={{
+          flexDirection: "row",
+          gap: 10,
+          backgroundColor: colors.alertSoft,
+          borderRadius: radius.md,
+          padding: 12,
+          marginBottom: 18,
+        }}
+      >
+        <Ionicons name="warning" size={17} color={colors.alertDark} style={{ marginTop: 1 }} />
+        <Text style={{ flex: 1, fontFamily: fonts.medium, fontSize: 12, color: colors.alertDark, lineHeight: 17 }}>
+          Informativo — não substitui atendimento médico de urgência.
+        </Text>
+      </View>
+
+      <Text style={{ fontFamily: fonts.bold, fontSize: 15, color: colors.ink, marginBottom: 12 }}>
+        Guia de Resposta Rápida
       </Text>
 
       {loading ? (
         <ActivityIndicator color={colors.primary} />
       ) : (
-        <FlatList
-          data={guides}
-          keyExtractor={(g) => g.id}
-          contentContainerStyle={{ gap: 8 }}
-          renderItem={({ item }) => (
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+          {guides.map((guide) => (
             <Pressable
-              onPress={() => navigation.navigate("FirstAidDetail", { id: item.id })}
-              style={{
+              key={guide.id}
+              onPress={() => navigation.navigate("FirstAidDetail", { id: guide.id })}
+              style={({ pressed }) => ({
+                flexBasis: "48%",
                 backgroundColor: colors.panel,
-                borderWidth: 1,
-                borderColor: colors.line,
-                borderRadius: 14,
-                padding: 14,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
+                borderRadius: radius.lg,
+                padding: 16,
+                opacity: pressed ? 0.85 : 1,
+              })}
             >
-              <View style={{ flex: 1, paddingRight: 8 }}>
-                <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.ink }}>{item.titulo}</Text>
-                <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: colors.inkSoft, marginTop: 2 }}>{item.resumo}</Text>
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: radius.md,
+                  backgroundColor: colors.primarySoft,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 10,
+                }}
+              >
+                <Ionicons name={guide.icon as keyof typeof Ionicons.glyphMap} size={19} color={colors.primary} />
               </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.inkSoft} />
+              <Text style={{ fontFamily: fonts.semiBold, fontSize: 13, color: colors.ink }}>{guide.titulo}</Text>
             </Pressable>
-          )}
-        />
+          ))}
+        </View>
       )}
-    </View>
+    </ScrollView>
   );
 }

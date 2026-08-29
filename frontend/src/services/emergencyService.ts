@@ -1,6 +1,7 @@
 import { Linking, Platform } from "react-native";
 import { api } from "./api";
 import { EMERGENCY_NUMBERS } from "@/config/env";
+import { ESTABLISHMENTS_MOCK } from "@/data/establishmentsMock";
 import type { Coords } from "@/hooks/useLocation";
 
 export interface NearbyHospital {
@@ -9,6 +10,8 @@ export interface NearbyHospital {
   distanciaKm: number;
   endereco: string;
   aberto24h: boolean;
+  latitude: number;
+  longitude: number;
 }
 
 export interface EmergencyContact {
@@ -52,10 +55,20 @@ export const emergencyService = {
   },
 
   async getNearbyHospitals(coords: Coords): Promise<NearbyHospital[]> {
-    const { data } = await api.get<NearbyHospital[]>("/api/emergencia/hospitais-proximos", {
-      params: coords,
-    });
-    return data;
+    try {
+      const { data } = await api.get<NearbyHospital[]>("/api/emergencia/hospitais-proximos", { params: coords });
+      return data;
+    } catch {
+      return ESTABLISHMENTS_MOCK.filter((e) => e.tipo === "hospital" || e.tipo === "upa").map((e) => ({
+        id: e.id,
+        nome: e.nome,
+        distanciaKm: e.distanciaKm,
+        endereco: e.endereco,
+        aberto24h: e.horario.toLowerCase().includes("24h"),
+        latitude: e.latitude,
+        longitude: e.longitude,
+      }));
+    }
   },
 
   /** Abre o app de mapas do sistema com a rota traçada — não navega dentro do app. */

@@ -1,26 +1,49 @@
 import { api } from "./api";
-
-export interface ConsultaHistorico {
-  id: string;
-  tipo: "consulta";
-  descricao: string;
-  data: string;
-}
-
-export interface ExameHistorico {
-  id: string;
-  tipo: "exame";
-  descricao: string;
-  data: string;
-}
+import { HISTORY_MOCK, ConsultaHistoricoMock } from "@/data/historyMock";
 
 export const historyService = {
-  async listConsultas() {
-    const { data } = await api.get<ConsultaHistorico[]>("/api/historico/consultas");
-    return data;
+  async listConsultas(): Promise<ConsultaHistoricoMock[]> {
+    try {
+      const { data } = await api.get<ConsultaHistoricoMock[]>("/api/historico/consultas");
+      return data;
+    } catch {
+      return HISTORY_MOCK;
+    }
   },
+
+  async getConsultaById(id: string): Promise<ConsultaHistoricoMock | undefined> {
+    try {
+      const { data } = await api.get<ConsultaHistoricoMock>(`/api/historico/consultas/${id}`);
+      return data;
+    } catch {
+      return HISTORY_MOCK.find((c) => c.id === id);
+    }
+  },
+
   async listExames() {
-    const { data } = await api.get<ExameHistorico[]>("/api/historico/exames");
-    return data;
+    try {
+      const { data } = await api.get("/api/historico/exames");
+      return data;
+    } catch {
+      return [];
+    }
+  },
+
+  async listVacinas() {
+    try {
+      const { data } = await api.get("/api/historico/vacinas");
+      return data;
+    } catch {
+      return [];
+    }
+  },
+
+  async listMedicamentos() {
+    try {
+      const { data } = await api.get("/api/historico/medicamentos");
+      return data;
+    } catch {
+      return [];
+    }
   },
 };

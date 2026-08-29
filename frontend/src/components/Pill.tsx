@@ -1,22 +1,33 @@
 import React from "react";
 import { Text, View } from "react-native";
 import { colors } from "@/theme/colors";
-import { fonts } from "@/theme/typography";
+import { fonts, radius } from "@/theme/typography";
 
 interface PillProps {
   children: string;
-  tone?: "primary" | "alert";
+  tone?: "primary" | "alert" | "neutral";
 }
 
+/** Badge pequeno usado em tipo de estabelecimento, status "Realizada" etc. */
 export function Pill({ children, tone = "primary" }: PillProps) {
-  const bg = tone === "primary" ? colors.primarySoft : colors.alertSoft;
-  const fg = tone === "primary" ? colors.primaryDark : colors.alertDark;
+  const map = {
+    primary: { bg: colors.primarySoft, fg: colors.primaryDark },
+    alert: { bg: colors.alertSoft, fg: colors.alertDark },
+    neutral: { bg: colors.line, fg: colors.inkSoft },
+  };
+  const c = map[tone];
 
   return (
-    <View style={{ backgroundColor: bg, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 3, alignSelf: "flex-start" }}>
-      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11, color: fg, letterSpacing: 0.2 }}>
-        {children}
-      </Text>
+    <View
+      style={{
+        backgroundColor: c.bg,
+        borderRadius: radius.pill,
+        paddingHorizontal: 9,
+        paddingVertical: 3,
+        alignSelf: "flex-start",
+      }}
+    >
+      <Text style={{ fontFamily: fonts.semiBold, fontSize: 11, color: c.fg, letterSpacing: 0.2 }}>{children}</Text>
     </View>
   );
 }

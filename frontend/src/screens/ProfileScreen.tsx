@@ -1,119 +1,79 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/theme/colors";
-import { fonts, spacing } from "@/theme/typography";
-import { api } from "@/services/api";
+import { fonts, radius, spacing } from "@/theme/typography";
+import { Avatar } from "@/components/Avatar";
+import { useAppNavigation } from "@/navigation/useAppNavigation";
+import { profileService, UserProfile } from "@/services/profileService";
 import { authService } from "@/services/authService";
 
-interface ProfileForm {
-  nome: string;
-  email: string;
-  telefone: string;
-}
-
-function Field({
-  label,
-  value,
-  onChangeText,
-  keyboardType,
-}: {
-  label: string;
-  value: string;
-  onChangeText: (v: string) => void;
-  keyboardType?: "default" | "email-address" | "phone-pad";
-}) {
-  return (
-    <View style={{ marginBottom: 12 }}>
-      <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: colors.inkSoft }}>{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType}
-        style={{
-          marginTop: 4,
-          borderWidth: 1,
-          borderColor: colors.line,
-          borderRadius: 10,
-          paddingHorizontal: 12,
-          paddingVertical: 10,
-          fontFamily: fonts.body,
-          fontSize: 13,
-          color: colors.ink,
-        }}
-      />
-    </View>
-  );
-}
+const MENU_ITEMS: { icon: keyof typeof Ionicons.glyphMap; label: string; route: "EditProfile" | "Favorites" | "Notifications" }[] = [
+  { icon: "person-outline", label: "Editar Perfil", route: "EditProfile" },
+  { icon: "heart-outline", label: "Favoritos", route: "Favorites" },
+  { icon: "notifications-outline", label: "Notificações", route: "Notifications" },
+];
 
 export function ProfileScreen() {
-  const [form, setForm] = useState<ProfileForm>({ nome: "", email: "", telefone: "" });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const navigation = useAppNavigation();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
-    // GET /api/users/me — rota 21.2 do readme
-    api
-      .get("/api/users/me")
-      .then(({ data }) => setForm({ nome: data.nome ?? "", email: data.email ?? "", telefone: data.telefone ?? "" }))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    profileService.getMe().then(setProfile);
   }, []);
 
-  async function handleSave() {
-    setSaving(true);
-    try {
-      await api.put("/api/users/me", form);
-      Alert.alert("Perfil atualizado", "Seus dados foram salvos com sucesso.");
-    } catch {
-      Alert.alert("Erro", "Não foi possível salvar suas alterações agora.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function handleLogout() {
-    await authService.logout();
-    // A navegação para a tela de Login deve ser tratada pelo listener de
-    // autenticação no RootNavigator (ver App.tsx), que observa o token.
+  function handleLogout() {
+    Alert.alert("Sair da conta", "Tem certeza que deseja sair?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Sair",
+        style: "destructive",
+        onPress: async () => {
+          await authService.logout();
+          // A navegação de volta ao Login é tratada pelo listener de
+          // autenticação no App.tsx, que observa o token armazenado.
+        },
+      },
+    ]);
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.lg }}>
-      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: colors.primary, letterSpacing: 1, textTransform: "uppercase" }}>
-        Cadastro
-      </Text>
-      <Text style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink, marginTop: 4, marginBottom: 16 }}>
-        Meu Perfil
-      </Text>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.lg, paddingTop: spacing.xl }}>
+      <Text style={{ fontFamily: fonts.bold, fontSize: 19, color: colors.ink, marginBottom: 20 }}>Perfil</Text>
 
-      {!loading && (
-        <>
-          <Field label="Nome completo" value={form.nome} onChangeText={(v) => setForm({ ...form, nome: v })} />
-          <Field label="E-mail" value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} keyboardType="email-address" />
-          <Field label="Telefone" value={form.telefone} onChangeText={(v) => setForm({ ...form, telefone: v })} keyboardType="phone-pad" />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 24 }}>
+        <Avatar uri={profile?.avatarUrl} size={56} />
+        <View>
+          <Text style={{ fontFamily: fonts.bold, fontSize: 16, color: colors.ink }}>{profile?.nome ?? "..."}</Text>
+          <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft }}>{profile?.email}</Text>
+        </View>
+      </View>
 
+      <View style={{ backgroundColor: colors.panel, borderRadius: radius.lg, overflow: "hidden", marginBottom: 20 }}>
+        {MENU_ITEMS.map((item, i) => (
           <Pressable
-            onPress={handleSave}
-            disabled={saving}
+            key={item.route}
+            onPress={() => navigation.navigate(item.route)}
             style={{
-              backgroundColor: colors.primary,
-              borderRadius: 12,
-              paddingVertical: 13,
+              flexDirection: "row",
               alignItems: "center",
-              marginTop: 8,
-              opacity: saving ? 0.7 : 1,
+              gap: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 15,
+              borderBottomWidth: i === MENU_ITEMS.length - 1 ? 0 : 1,
+              borderBottomColor: colors.line,
             }}
           >
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: colors.white }}>
-              {saving ? "Salvando..." : "Salvar alterações"}
-            </Text>
+            <Ionicons name={item.icon} size={18} color={colors.primary} />
+            <Text style={{ flex: 1, fontFamily: fonts.medium, fontSize: 13.5, color: colors.ink }}>{item.label}</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.inkFaint} />
           </Pressable>
+        ))}
+      </View>
 
-          <Pressable onPress={handleLogout} style={{ alignItems: "center", marginTop: 16 }}>
-            <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.alertDark }}>Sair da conta</Text>
-          </Pressable>
-        </>
-      )}
+      <Pressable onPress={handleLogout} style={{ alignItems: "center", paddingVertical: 10 }}>
+        <Text style={{ fontFamily: fonts.semiBold, fontSize: 13, color: colors.alertDark }}>Sair da conta</Text>
+      </Pressable>
     </ScrollView>
   );
 }

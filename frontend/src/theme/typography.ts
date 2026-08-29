@@ -1,12 +1,12 @@
-// Fraunces para títulos (calor humano) + Inter para corpo (clareza clínica).
-// Ambas devem ser carregadas via expo-font no App.tsx antes do app renderizar.
+// O design usa uma sans-serif geométrica em todos os pesos (sem serifa) —
+// por isso usamos só Inter aqui, ao contrário da primeira versão deste
+// protótipo que misturava Fraunces (serifada) sem base no design real.
 export const fonts = {
-  display: "Fraunces_600SemiBold",
-  displayBold: "Fraunces_700Bold",
-  body: "Inter_400Regular",
-  bodyMedium: "Inter_500Medium",
-  bodySemiBold: "Inter_600SemiBold",
-  bodyBold: "Inter_700Bold",
+  regular: "Inter_400Regular",
+  medium: "Inter_500Medium",
+  semiBold: "Inter_600SemiBold",
+  bold: "Inter_700Bold",
+  extraBold: "Inter_800ExtraBold",
 } as const;
 
 export const spacing = {
@@ -22,5 +22,6 @@ export const radius = {
   sm: 10,
   md: 14,
   lg: 20,
+  xl: 24,
   pill: 999,
 } as const;

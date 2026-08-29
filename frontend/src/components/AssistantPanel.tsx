@@ -110,10 +110,10 @@ export function AssistantPanel({ visible, onClose, onNavigate }: AssistantPanelP
               <Ionicons name="sparkles" size={16} color={colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: fonts.bodyBold, fontSize: 13.5, color: colors.ink }}>
+              <Text style={{ fontFamily: fonts.bold, fontSize: 13.5, color: colors.ink }}>
                 Assistente Easy Health
               </Text>
-              <Text style={{ fontFamily: fonts.body, fontSize: 10.5, color: colors.inkSoft }}>
+              <Text style={{ fontFamily: fonts.regular, fontSize: 10.5, color: colors.inkSoft }}>
                 Guia o app • não substitui atendimento médico
               </Text>
             </View>
@@ -141,7 +141,7 @@ export function AssistantPanel({ visible, onClose, onNavigate }: AssistantPanelP
                 >
                   <Text
                     style={{
-                      fontFamily: fonts.body,
+                      fontFamily: fonts.regular,
                       fontSize: 12.5,
                       lineHeight: 18,
                       color: item.role === "user" ? colors.white : colors.ink,
@@ -156,7 +156,7 @@ export function AssistantPanel({ visible, onClose, onNavigate }: AssistantPanelP
               loading ? (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
                   <ActivityIndicator size="small" color={colors.inkSoft} />
-                  <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: colors.inkSoft }}>
+                  <Text style={{ fontFamily: fonts.regular, fontSize: 11.5, color: colors.inkSoft }}>
                     Pensando...
                   </Text>
                 </View>
@@ -186,7 +186,7 @@ export function AssistantPanel({ visible, onClose, onNavigate }: AssistantPanelP
                 borderRadius: 12,
                 paddingHorizontal: 12,
                 paddingVertical: 10,
-                fontFamily: fonts.body,
+                fontFamily: fonts.regular,
                 fontSize: 12.5,
                 color: colors.ink,
               }}

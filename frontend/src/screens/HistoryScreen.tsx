@@ -1,75 +1,96 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { colors } from "@/theme/colors";
-import { fonts, spacing } from "@/theme/typography";
+import { fonts, radius, spacing } from "@/theme/typography";
+import { PillTabs } from "@/components/PillTabs";
 import { Pill } from "@/components/Pill";
-import { historyService, ConsultaHistorico, ExameHistorico } from "@/services/historyService";
+import { useAppNavigation } from "@/navigation/useAppNavigation";
+import { historyService } from "@/services/historyService";
+import type { ConsultaHistoricoMock } from "@/data/historyMock";
+import { formatDateShort } from "@/utils/date";
 
-type HistoryItem = ConsultaHistorico | ExameHistorico;
+type Aba = "consultas" | "exames" | "vacinas" | "medicamentos";
+
+const TABS: { value: Aba; label: string }[] = [
+  { value: "consultas", label: "Consultas" },
+  { value: "exames", label: "Exames" },
+  { value: "vacinas", label: "Vacinas" },
+  { value: "medicamentos", label: "Medicamentos" },
+];
 
 export function HistoryScreen() {
-  const [items, setItems] = useState<HistoryItem[]>([]);
+  const navigation = useAppNavigation();
+  const [aba, setAba] = useState<Aba>("consultas");
+  const [consultas, setConsultas] = useState<ConsultaHistoricoMock[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([historyService.listConsultas(), historyService.listExames()])
-      .then(([consultas, exames]) => {
-        const merged = [...consultas, ...exames].sort(
-          (a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()
-        );
-        setItems(merged);
-      })
-      .catch(() => setItems([]))
-      .finally(() => setLoading(false));
+    historyService.listConsultas().then((data) => {
+      setConsultas(data);
+      setLoading(false);
+    });
   }, []);
 
-  return (
-    <View style={{ flex: 1, backgroundColor: colors.bg, padding: spacing.lg }}>
-      <Text style={{ fontFamily: fonts.bodyBold, fontSize: 11, color: colors.primary, letterSpacing: 1, textTransform: "uppercase" }}>
-        Organização
-      </Text>
-      <Text style={{ fontFamily: fonts.display, fontSize: 24, color: colors.ink, marginTop: 4, marginBottom: 16 }}>
-        Meu Histórico
-      </Text>
+  function handleAddRecord() {
+    // Fluxo de adicionar registro manual fica para uma fase seguinte
+    // (upload de documento / formulário) — placeholder por ora.
+    Alert.alert("Em breve", "O formulário de adicionar registro ainda está em desenvolvimento.");
+  }
 
-      {loading ? (
+  return (
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={{ padding: spacing.lg, paddingTop: spacing.xl, paddingBottom: 100 }}>
+      <Text style={{ fontFamily: fonts.bold, fontSize: 19, color: colors.ink, marginBottom: 16 }}>Meu Histórico</Text>
+
+      <View style={{ marginBottom: 18 }}>
+        <PillTabs options={TABS} value={aba} onChange={setAba} />
+      </View>
+
+      {aba !== "consultas" ? (
+        <Text style={{ fontFamily: fonts.regular, fontSize: 12.5, color: colors.inkSoft }}>
+          Nenhum registro de {TABS.find((t) => t.value === aba)?.label.toLowerCase()} ainda.
+        </Text>
+      ) : loading ? (
         <ActivityIndicator color={colors.primary} />
       ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ gap: 8 }}
-          renderItem={({ item }) => (
-            <View
-              style={{
-                backgroundColor: colors.panel,
-                borderWidth: 1,
-                borderColor: colors.line,
-                borderRadius: 14,
-                padding: 13,
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <View>
-                <Pill>{item.tipo === "consulta" ? "Consulta" : "Exame"}</Pill>
-                <Text style={{ fontFamily: fonts.bodySemiBold, fontSize: 13, color: colors.ink, marginTop: 6 }}>
-                  {item.descricao}
+        <View style={{ gap: 10, marginBottom: 20 }}>
+          {consultas.map((c) => (
+            <View key={c.id} style={{ backgroundColor: colors.panel, borderRadius: radius.lg, padding: 14 }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <Text style={{ fontFamily: fonts.regular, fontSize: 11.5, color: colors.inkSoft }}>
+                  {formatDateShort(c.data)}
                 </Text>
+                <Pill>{c.status === "realizada" ? "Realizada" : "Agendada"}</Pill>
               </View>
-              <Text style={{ fontFamily: fonts.body, fontSize: 11.5, color: colors.inkSoft }}>
-                {new Date(item.data).toLocaleDateString("pt-BR")}
+              <Text style={{ fontFamily: fonts.bold, fontSize: 14, color: colors.ink, marginTop: 6 }}>{c.medico}</Text>
+              <Text style={{ fontFamily: fonts.regular, fontSize: 12, color: colors.inkSoft, marginTop: 2 }}>
+                {c.especialidade} • {c.local}
               </Text>
+              {c.diagnostico && (
+                <Pressable onPress={() => navigation.navigate("ConsultationDetail", { id: c.id })} style={{ marginTop: 10 }}>
+                  <Text style={{ fontFamily: fonts.semiBold, fontSize: 12, color: colors.primary }}>
+                    Ver detalhes do diagnóstico →
+                  </Text>
+                </Pressable>
+              )}
             </View>
-          )}
-          ListEmptyComponent={
-            <Text style={{ fontFamily: fonts.body, fontSize: 12.5, color: colors.inkSoft }}>
-              Nenhum registro por aqui ainda.
-            </Text>
-          }
-        />
+          ))}
+        </View>
       )}
-    </View>
+
+      <Pressable
+        onPress={handleAddRecord}
+        style={{
+          backgroundColor: colors.primary,
+          borderRadius: radius.md,
+          paddingVertical: 14,
+          alignItems: "center",
+          flexDirection: "row",
+          justifyContent: "center",
+          gap: 6,
+        }}
+      >
+        <Text style={{ fontFamily: fonts.semiBold, fontSize: 13.5, color: colors.white }}>+ Adicionar Registro</Text>
+      </Pressable>
+    </ScrollView>
   );
 }

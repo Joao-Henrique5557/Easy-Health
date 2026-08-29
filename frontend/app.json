@@ -40,7 +40,7 @@
       ]
     ],
     "extra": {
-      "apiUrl": "https://api.easyhealth.exemplo.com"
+      "apiUrl": "192.168.3.52:3333"
     }
   }
 }

@@ -23,9 +23,7 @@ export const firstAidService = {
 
   async search(query: string): Promise<FirstAidGuide[]> {
     try {
-      const { data } = await api.get<FirstAidGuide[]>("/api/primeiros-socorros/busca", {
-        params: { query },
-      });
+      const { data } = await api.get<FirstAidGuide[]>("/api/primeiros-socorros/busca", { params: { query } });
       return data;
     } catch {
       const q = query.toLowerCase();
