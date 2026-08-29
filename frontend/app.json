@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Easy Health",
+    "slug": "easy-health",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#F5FAF8"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "android": {
+      "package": "br.com.easyhealth.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#146B63"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "POST_NOTIFICATIONS",
+        "VIBRATE",
+        "INTERNET"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "O Easy Health usa sua localização para encontrar hospitais, clínicas e UBS mais próximos, especialmente no Modo Emergência.",
+          "isAndroidBackgroundLocationEnabled": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#146B63"
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "https://api.easyhealth.exemplo.com"
+    }
+  }
+}
