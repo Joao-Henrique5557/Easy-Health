@@ -1,0 +1,57 @@
+### Easy Health API — Histórico de saúde (seção 21.7 do readme)
+# Todas exigem autenticação. Consultas já vêm populadas pelo seed.
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria.silva@email.com",
+  "senha": "senha123"
+}
+
+### Listar minhas consultas (Tela "Meu Histórico")
+GET {{baseUrl}}/api/historico/consultas
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Adicionar consulta manualmente
+# @name createConsulta
+POST {{baseUrl}}/api/historico/consultas
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "medico": "Dra. Camila Rocha",
+  "especialidade": "Dermatologista",
+  "local": "Clínica Saúde Mais",
+  "data": "2026-01-20",
+  "status": "realizada",
+  "diagnostico": "Dermatite de contato leve",
+  "observacoes": "Evitar produtos com fragrância por 2 semanas.",
+  "retorno": "Retorno se não houver melhora em 10 dias",
+  "prescricoes": [
+    { "medicamento": "Loratadina 10mg", "posologia": "1 comprimido ao dia por 7 dias" }
+  ]
+}
+
+### Detalhe de uma consulta (Tela "Detalhe da Consulta")
+GET {{baseUrl}}/api/historico/consultas/{{createConsulta.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Exames, vacinas e medicamentos — ainda não implementados no MVP
+# (retornam lista vazia; ver "Prioridade futura" no roadmap do readme)
+GET {{baseUrl}}/api/historico/exames
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+###
+GET {{baseUrl}}/api/historico/vacinas
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+###
+GET {{baseUrl}}/api/historico/medicamentos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+###
+GET {{baseUrl}}/api/historico/documentos
+Authorization: Bearer {{login.response.body.$.accessToken}}

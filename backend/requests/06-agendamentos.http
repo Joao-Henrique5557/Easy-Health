@@ -1,0 +1,50 @@
+### Easy Health API — Agendamentos (seção 21.6 do readme)
+# Todas exigem autenticação.
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria.silva@email.com",
+  "senha": "senha123"
+}
+
+### Listar meus agendamentos (Home > Próximas Consultas / Histórico)
+GET {{baseUrl}}/api/agendamentos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Criar agendamento (Tela "Agendar Consulta")
+# @name createBooking
+POST {{baseUrl}}/api/agendamentos
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "establishmentId": "hosp-sao-lucas",
+  "especialidade": "Cardiologia",
+  "data": "2026-09-20",
+  "horario": "10:00"
+}
+
+### Detalhe de um agendamento
+GET {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Reagendar (mudar data/horário)
+PUT {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "horario": "11:30"
+}
+
+### Confirmar agendamento
+POST {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}/confirmar
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Cancelar agendamento
+DELETE {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}
+Authorization: Bearer {{login.response.body.$.accessToken}}

@@ -1,0 +1,12 @@
+### Easy Health API — Localização / Mapas (seção 21.10 do readme)
+# Uso interno — implementado via Nominatim (OpenStreetMap), sem chave de API.
+# Rotas públicas.
+
+### Geocodificação (endereço -> coordenadas)
+GET {{baseUrl}}/api/localizacao/geocode?endereco=Avenida Paulista, São Paulo
+
+### Geocodificação reversa (coordenadas -> endereço)
+GET {{baseUrl}}/api/localizacao/reverse-geocode?latitude=-23.5613&longitude=-46.6558
+
+### Distância entre dois pontos
+GET {{baseUrl}}/api/localizacao/distancia?origemLat=-23.5505&origemLng=-46.6333&destinoLat=-23.5613&destinoLng=-46.6558

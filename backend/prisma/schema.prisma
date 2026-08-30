@@ -1,0 +1,227 @@
+// Schema do banco de dados do Easy Health.
+//
+// Cada modelo aqui foi desenhado para bater exatamente com os tipos que o
+// frontend (React Native) já espera nas respostas da API — os arquivos em
+// frontend/src/services/*.ts são a "fonte da verdade" do contrato. Sempre
+// que um campo mudar aqui, o service correspondente no frontend precisa
+// mudar junto.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoEstabelecimento {
+  hospital
+  clinica
+  ubs
+  upa
+  laboratorio
+}
+
+enum RedeAtendimento {
+  publico
+  privado
+}
+
+enum StatusEstabelecimento {
+  aberto
+  fechado
+  emergencia
+}
+
+enum StatusConsulta {
+  realizada
+  agendada
+}
+
+model User {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senhaHash String
+  telefone  String?
+  dataNascimento DateTime?
+  avatarUrl String?
+
+  // Ficha médica — usada na tela de Modo Emergência.
+  tipoSanguineo               String?
+  alergias                    String?
+  medicamentosEmUso           String?
+  planoDeSaude                String?
+  contatoEmergenciaNome       String?
+  contatoEmergenciaTelefone   String?
+  contatoEmergenciaParentesco String?
+
+  emailVerificado Boolean  @default(false)
+  emailVerificationCodeHash String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+  bookings      Booking[]
+  consultations Consultation[]
+  favorites     Favorite[]
+  notifications Notification[]
+  pushTokens    PushToken[]
+  passwordResets PasswordReset[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model PasswordReset {
+  id        String   @id @default(uuid())
+  codeHash  String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("password_resets")
+}
+
+model Establishment {
+  id               String                 @id @default(uuid())
+  nome             String
+  tipo             TipoEstabelecimento
+  redeAtendimento  RedeAtendimento
+  endereco         String
+  avaliacao        Float                  @default(0)
+  avaliacoesCount  Int?
+  status           StatusEstabelecimento  @default(aberto)
+  statusLabel      String?
+  horario          String
+  telefone         String?
+  especialidades   String[]               @default([])
+  convenios        String[]               @default([])
+  latitude         Float
+  longitude        Float
+  createdAt        DateTime               @default(now())
+
+  precos   EstablishmentPrice[]
+  bookings Booking[]
+  favorites Favorite[]
+
+  @@map("establishments")
+}
+
+model EstablishmentPrice {
+  id              String        @id @default(uuid())
+  establishmentId String
+  establishment   Establishment @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  servico         String
+  valor           String
+
+  @@map("establishment_prices")
+}
+
+model FirstAidGuide {
+  // id em formato slug (ex: "engasgo") para bater com os ids fixos já
+  // usados no app (fallback local em frontend/src/data/firstAidContent.ts).
+  id      String   @id
+  titulo  String
+  resumo  String
+  icon    String
+  passos  String[]
+  ordem   Int      @default(0)
+
+  @@map("first_aid_guides")
+}
+
+model Booking {
+  id                 String   @id @default(uuid())
+  userId             String
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  establishmentId    String
+  establishment      Establishment @relation(fields: [establishmentId], references: [id])
+  especialidade      String
+  data               DateTime
+  horario            String
+  medico             String
+  medicoCrm          String
+  valor              String
+  status             String   @default("confirmada")
+  createdAt          DateTime @default(now())
+
+  @@map("bookings")
+}
+
+model Consultation {
+  id            String          @id @default(uuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  medico        String
+  especialidade String
+  local         String
+  data          DateTime
+  status        StatusConsulta  @default(realizada)
+  diagnostico   String?
+  observacoes   String?
+  retorno       String?
+
+  prescricoes Prescription[]
+
+  @@map("consultations")
+}
+
+model Prescription {
+  id             String       @id @default(uuid())
+  consultationId String
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  medicamento    String
+  posologia      String
+
+  @@map("prescriptions")
+}
+
+model Favorite {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  establishmentId String
+  establishment   Establishment @relation(fields: [establishmentId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@unique([userId, establishmentId])
+  @@map("favorites")
+}
+
+model Notification {
+  id        String            @id @default(uuid())
+  userId    String
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  icon      String
+  titulo    String
+  descricao String
+  lida      Boolean           @default(false)
+  createdAt DateTime          @default(now())
+
+  @@map("notifications")
+}
+
+model PushToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("push_tokens")
+}

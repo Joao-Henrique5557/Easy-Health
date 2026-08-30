@@ -1,0 +1,66 @@
+### Easy Health API — Perfil do usuário (seção 21.2 do readme)
+# Todas exigem autenticação.
+
+### Login (para obter o token usado abaixo)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria.silva@email.com",
+  "senha": "senha123"
+}
+
+### Meu perfil (usado pela Home, Emergência e Editar Perfil no app)
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Atualizar perfil (mesmos campos da tela Editar Perfil)
+PUT {{baseUrl}}/api/users/me
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "nome": "Maria Silva",
+  "telefone": "(11) 98888-7777",
+  "tipoSanguineo": "O-",
+  "alergias": "Penicilina, Corantes Amarelos",
+  "medicamentosEmUso": "Nenhum",
+  "planoDeSaude": "Amil Saúde (Nacional)"
+}
+
+### Atualizar avatar
+PATCH {{baseUrl}}/api/users/me/avatar
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "avatarUrl": "https://exemplo.com/foto.jpg"
+}
+
+### Alterar senha
+PUT {{baseUrl}}/api/users/me/password
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "senhaAtual": "senha123",
+  "novaSenha": "senha123"
+}
+
+### Registrar token de push (usado por expo-notifications no app)
+POST {{baseUrl}}/api/users/me/push-token
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "token": "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"
+}
+
+### Preferências do app
+GET {{baseUrl}}/api/users/me/preferencias
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Excluir minha conta (cuidado — irreversível)
+# DELETE {{baseUrl}}/api/users/me
+# Authorization: Bearer {{login.response.body.$.accessToken}}

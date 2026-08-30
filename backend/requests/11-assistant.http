@@ -1,0 +1,36 @@
+### Easy Health API — Assistente de IA (seção 6.8 do readme)
+# Rota adicional (não fazia parte da seção 21 original), criada
+# especificamente para o Assistente de IA. Exige autenticação.
+#
+# Sem ANTHROPIC_API_KEY configurada no backend, responde com uma
+# mensagem de fallback amigável em vez de dar erro.
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria.silva@email.com",
+  "senha": "senha123"
+}
+
+### Pergunta de navegação simples
+POST {{baseUrl}}/api/assistant/message
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "message": "quero achar uma clínica perto de mim",
+  "history": []
+}
+
+### Pergunta que deveria acionar o modo emergência
+POST {{baseUrl}}/api/assistant/message
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "message": "meu pai está com dor forte no peito e não consegue respirar",
+  "history": []
+}

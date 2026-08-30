@@ -1,0 +1,14 @@
+### Easy Health API — Primeiros Socorros (seção 21.3 do readme)
+# Conteúdo público — não exige autenticação (é informação de segurança).
+
+### Listar todos os guias (Tela "Primeiros Socorros")
+GET {{baseUrl}}/api/primeiros-socorros
+
+### Listar só id/título/ícone (grade da tela)
+GET {{baseUrl}}/api/primeiros-socorros/categorias
+
+### Buscar por palavra-chave
+GET {{baseUrl}}/api/primeiros-socorros/busca?query=engasgo
+
+### Detalhe de um guia (Tela "Detalhe Primeiro Socorro")
+GET {{baseUrl}}/api/primeiros-socorros/engasgo

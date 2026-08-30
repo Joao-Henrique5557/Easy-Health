@@ -233,6 +233,40 @@ Possíveis recursos:
 
 ---
 
+## 6.8 Assistente de IA (Easy Health Assistant)
+
+Um assistente conversacional integrado ao aplicativo, com dois papéis principais: **guiar o usuário pelo app** e **atuar como suporte de emergência 24h**.
+
+### Navegação guiada
+
+- O usuário descreve o que precisa em linguagem natural (ex.: _"quero achar um pediatra perto de mim"_, _"onde vejo meus exames?"_, _"como faço para agendar uma consulta?"_).
+- A IA identifica a intenção e redireciona o usuário diretamente para a tela ou fluxo correspondente do app (deep link), em vez de apenas explicar em texto.
+- Também responde dúvidas gerais sobre como cada funcionalidade do app funciona, atuando como um "guia" permanente e contextual, reduzindo a curva de aprendizado do aplicativo.
+
+### Suporte 24h em situações de emergência
+
+- Funciona como uma camada de apoio disponível a qualquer hora, com um modo dedicado para emergências de saúde.
+- Ao detectar sinais de uma situação de emergência na conversa, a IA prioriza imediatamente:
+  1. Orientar o usuário a acionar os serviços de emergência reais (ex.: SAMU 192, Bombeiros 193, Polícia 190).
+  2. Localizar e indicar a rota até o hospital/UPA mais próximo.
+  3. Exibir instruções básicas de primeiros socorros — sempre conteúdo previamente validado por profissionais de saúde — enquanto o socorro não chega.
+- A IA **nunca substitui** atendimento médico, diagnóstico ou os serviços de emergência oficiais; sua função é orientar, acelerar o acesso à informação certa e nunca atrasar o contato com socorro real.
+
+### Segurança e ética
+
+- Respostas relacionadas à saúde são tratadas como **informativas**, nunca como diagnóstico ou prescrição.
+- Todo conteúdo usado pela IA em primeiros socorros/emergência segue a mesma exigência de validação profissional descrita na seção 19.
+- Disclaimers claros e visíveis em qualquer resposta relacionada a saúde ou emergência.
+- Conversas com a IA são tratadas como dado sensível de saúde, com minimização de retenção e criptografia (ver seção 14).
+- Em caso de dúvida sobre a gravidade da situação, a IA deve sempre pender para orientar o acionamento de serviços reais.
+- A ligação nunca é feita automaticamente pelo app — a IA só orienta; quem disca é sempre o usuário, tocando no número (ver `frontend/src/services/emergencyService.ts`).
+
+### Implementação
+
+O assistente é implementado como um componente no app (`AssistantFab` + `AssistantPanel`) que chama a rota `POST /api/assistant/message` do backend (seção 22.11), a qual por sua vez chama a API da Claude (Anthropic) do lado do servidor. A detecção de emergência roda **localmente no app**, por palavras-chave, antes de qualquer chamada de rede — garante que o usuário chegue à tela de emergência mesmo offline ou se a IA estiver indisponível.
+
+---
+
 # 7. Estratégia do Oceano Azul
 
 A estratégia do **Oceano Azul** busca criar uma nova proposta de valor em vez de competir apenas com base nas mesmas características oferecidas pelos concorrentes.
@@ -387,71 +421,72 @@ Informações importantes disponíveis rapidamente em situações de emergência
 
 # 12. Arquitetura Conceitual
 
-Uma possível arquitetura inicial:
+Arquitetura implementada:
 
 ```text
 ┌─────────────────────────────┐
 │       Easy Health App       │
 │     React Native / Expo     │
 └──────────────┬──────────────┘
-               │
+               │  HTTPS / JWT (Bearer Token)
                ▼
 ┌─────────────────────────────┐
-│            API              │
-│       Backend / REST        │
+│      Backend (Express)      │
+│   Node.js + TypeScript      │
 └───────┬───────────┬─────────┘
         │           │
         ▼           ▼
 ┌────────────┐ ┌───────────────┐
-│ Banco de   │ │ Serviços      │
-│ Dados      │ │ Externos      │
+│ PostgreSQL │ │ Serviços      │
+│ (Prisma)   │ │ Externos      │
 └────────────┘ └───────┬───────┘
                        │
              ┌─────────┼─────────┐
              ▼         ▼         ▼
-            SUS      Mapas    Clínicas
+       Nominatim   Anthropic   (futuro: CNES/
+       (mapas)     (IA)         DATASUS, Places)
 ```
 
-A arquitetura definitiva será definida conforme os requisitos técnicos, integrações disponíveis e evolução do produto.
+Todo o backend + banco sobe com um único `docker compose up` (ver seção 23). Detalhes de cada camada em `backend/README.md` e `frontend/README.md`.
 
 ---
 
 # 13. Tecnologias
 
-As tecnologias ainda podem ser definidas durante o desenvolvimento.
-
-Uma stack inicial possível:
+Stack efetivamente usada no projeto:
 
 ## Mobile
 
-- React Native
-- Expo
+- React Native + Expo
 - TypeScript
+- React Navigation (stack + bottom tabs)
+- axios (com interceptors de autenticação)
+- expo-location, expo-notifications, expo-secure-store, Linking (APIs nativas do Android/iOS)
 
 ## Backend
 
-- Node.js
-- TypeScript
-- REST API
+- Node.js + TypeScript
+- Express (REST API)
+- Prisma ORM
+- JWT (access + refresh token com rotação)
+- Zod (validação de entrada)
 
 ## Banco de dados
 
-- PostgreSQL ou MySQL
+- PostgreSQL
 
 ## Infraestrutura
 
-- Docker
-- Docker Compose
-- Git
-- GitHub
-- CI/CD
+- Docker + Docker Compose (banco + API + Adminer)
+- Git + GitHub
+- REST Client (VS Code) para testar a API manualmente (`backend/requests/`)
+- CI/CD: não implementado ainda (ver seção 21 — Status)
 
 ## Serviços externos
 
-- APIs de mapas e localização.
-- APIs de estabelecimentos.
-- APIs de agendamento.
-- Possíveis integrações com serviços públicos de saúde.
+- **Nominatim (OpenStreetMap)** — geocodificação, sem exigir chave de API.
+- **Anthropic (Claude)** — Assistente de IA (seção 6.8), chamado só pelo backend.
+- Ainda não integrados (roadmap): CNES/DATASUS (rede pública real), Google Places (rede privada real), FCM/OneSignal (push notifications em produção).
 
 ---
 
@@ -482,31 +517,31 @@ O primeiro MVP deve concentrar-se nas funcionalidades essenciais da proposta.
 
 ### Prioridade alta
 
-- [ ] Cadastro e login.
-- [ ] Perfil do usuário.
-- [ ] Área de primeiros socorros.
-- [ ] Busca por hospitais e clínicas.
-- [ ] Localização dos estabelecimentos.
-- [ ] Informações básicas dos estabelecimentos.
-- [ ] Modo de emergência.
+- [x] Cadastro e login.
+- [x] Perfil do usuário.
+- [x] Área de primeiros socorros.
+- [x] Busca por hospitais e clínicas.
+- [x] Localização dos estabelecimentos.
+- [x] Informações básicas dos estabelecimentos.
+- [x] Modo de emergência.
 
 ### Prioridade média
 
-- [ ] Sistema de agendamento.
-- [ ] Informações de preços.
-- [ ] Disponibilidade de horários.
-- [ ] Filtros de pesquisa.
-- [ ] Favoritos.
+- [x] Sistema de agendamento.
+- [x] Informações de preços.
+- [x] Disponibilidade de horários.
+- [x] Filtros de pesquisa.
+- [x] Favoritos.
 
 ### Prioridade futura
 
-- [ ] Histórico de consultas.
-- [ ] Histórico de exames.
-- [ ] Documentos médicos.
+- [x] Histórico de consultas.
+- [ ] Histórico de exames. _(rota implementada, sem tabela própria ainda — ver `backend/README.md`)_
+- [ ] Documentos médicos. _(idem)_
 - [ ] Comparação avançada de preços.
-- [ ] Integração com serviços públicos.
-- [ ] Integração com estabelecimentos privados.
-- [ ] Integrações com sistemas oficiais.
+- [ ] Integração com serviços públicos (CNES/DATASUS real).
+- [ ] Integração com estabelecimentos privados (Google Places real).
+- [ ] Integrações com sistemas oficiais (RNDS).
 
 ---
 
@@ -514,45 +549,53 @@ O primeiro MVP deve concentrar-se nas funcionalidades essenciais da proposta.
 
 ## Fase 1 — Fundação
 
-- [ ] Definição dos requisitos.
-- [ ] Definição da arquitetura.
-- [ ] Prototipação da interface.
-- [ ] Configuração do repositório.
-- [ ] Configuração do ambiente de desenvolvimento.
+- [x] Definição dos requisitos.
+- [x] Definição da arquitetura.
+- [x] Prototipação da interface.
+- [x] Configuração do repositório.
+- [x] Configuração do ambiente de desenvolvimento (Docker Compose).
 - [ ] Configuração inicial do CI/CD.
 
 ## Fase 2 — MVP
 
-- [ ] Cadastro.
-- [ ] Login.
-- [ ] Perfil.
-- [ ] Primeiros socorros.
-- [ ] Busca por atendimento.
-- [ ] Localização.
-- [ ] Modo de emergência.
+- [x] Cadastro.
+- [x] Login.
+- [x] Perfil.
+- [x] Primeiros socorros.
+- [x] Busca por atendimento.
+- [x] Localização.
+- [x] Modo de emergência.
 
 ## Fase 3 — Serviços
 
-- [ ] Agendamento.
-- [ ] Preços.
-- [ ] Disponibilidade.
-- [ ] Comparação.
-- [ ] Favoritos.
+- [x] Agendamento.
+- [x] Preços.
+- [x] Disponibilidade.
+- [ ] Comparação (avançada, entre múltiplos estabelecimentos).
+- [x] Favoritos.
 
 ## Fase 4 — Organização da saúde
 
-- [ ] Consultas.
+- [x] Consultas.
 - [ ] Exames.
-- [ ] Histórico.
+- [ ] Histórico. _(consultas prontas; exames/vacinas/medicamentos ainda não)_
 - [ ] Documentos.
 - [ ] Medicamentos.
 
 ## Fase 5 — Integrações
 
-- [ ] APIs externas.
-- [ ] Estabelecimentos privados.
-- [ ] Serviços públicos.
-- [ ] Sistemas oficiais, quando tecnicamente e legalmente possível.
+- [x] APIs externas (Nominatim para geocodificação; Anthropic para o Assistente de IA).
+- [ ] Estabelecimentos privados (Google Places real).
+- [ ] Serviços públicos (CNES/DATASUS real).
+- [ ] Sistemas oficiais, quando tecnicamente e legalmente possível (RNDS).
+
+## Fase 6 — Assistente de IA
+
+- [x] Navegação guiada por linguagem natural.
+- [x] Roteamento de intenções para telas do app.
+- [x] Detecção de sinais de emergência (local, no app, antes de qualquer chamada de rede).
+- [x] Backend chamando a API da Claude (Anthropic) do lado do servidor.
+- [ ] Base de conhecimento (RAG) sobre funcionalidades do app — hoje o conhecimento vem só do prompt de sistema.
 
 ---
 
@@ -607,7 +650,25 @@ Exemplo:
 
 ---
 
-# 18. Segurança e Responsabilidade Médica
+# 18. Equipe e Organização do Projeto
+
+O Easy Health é desenvolvido por uma equipe de 7 pessoas, na disciplina de Empreendedorismo (IFAL), seguindo uma organização baseada em Scrum + DevOps (ver metodologia completa em `docs/distribuicao-cargos-projeto-empreendedorismo.md`).
+
+| Papel                   | Responsável                    | Frente principal                                                        |
+| ----------------------- | ------------------------------ | ----------------------------------------------------------------------- |
+| Product Owner (PO)      | Cássio                         | Define a ideia de negócio, prioriza o backlog, representa o "cliente"   |
+| Scrum Master            | Caio                           | Organiza reuniões (daily, planning, review, retro), remove impedimentos |
+| Dev Mobile 1            | Alex                           | Telas, navegação e consumo da API no app React Native                   |
+| Dev Mobile 2            | Maxuel                         | Telas, navegação e consumo da API no app React Native                   |
+| Backend                 | Isabela                        | API, banco de dados, regras de negócio, autenticação                    |
+| DevOps / Infraestrutura | João Henrique (`joaohenrique`) | Git (branches/PRs), Docker/Docker Compose, CI/CD                        |
+| UI/UX Design            | Adriel Vinicius                | Wireframes, protótipo no Figma, identidade visual                       |
+
+Em um time de 7 pessoas para 7 frentes, cada integrante assume um papel "dono" e ajuda em pelo menos uma outra frente — ninguém fica isolado só na própria função.
+
+---
+
+# 19. Segurança e Responsabilidade Médica
 
 O Easy Health não substitui:
 
@@ -624,7 +685,7 @@ Especialmente na área de primeiros socorros, informações incorretas podem cau
 
 ---
 
-# 19. Conclusão
+# 20. Conclusão
 
 O **Easy Health** apresenta uma proposta baseada na integração de recursos que atualmente estão distribuídos entre diferentes aplicativos, sites e serviços.
 
@@ -648,19 +709,24 @@ Dessa forma, o Easy Health busca oferecer **mais praticidade, rapidez, organiza�
 
 ---
 
-# 20. Status
+# 21. Status
 
-**Status:** Planejamento / Desenvolvimento inicial
+**Status:** MVP implementado (frontend + backend + infraestrutura Docker) — validação e testes em andamento.
 
-O projeto encontra-se na etapa de definição da proposta, requisitos, estratégia de produto e arquitetura.
+- Frontend (React Native/Expo): todas as telas do design implementadas e conectadas ao backend, com fallback local para conteúdo de segurança (primeiros socorros) e dados de demonstração.
+- Backend (Node.js/TypeScript/Express/Prisma/PostgreSQL): todas as rotas da seção 22 implementadas, incluindo a rota do Assistente de IA.
+- Infraestrutura: `docker-compose.yml` sobe banco + API + UI de administração do banco com um único comando (ver seção 23).
+- Pendências: login social (OAuth real), upload de arquivos (foto de perfil, documentos médicos), geração de PDF de receita, integração com sistemas oficiais de saúde (RNDS) — ver roadmap (seção 16) e `backend/README.md`/`frontend/README.md` para o detalhamento técnico de cada pendência.
 
 ---
 
-# 21. Rotas de API
+# 22. Rotas de API
 
-Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home, primeiros socorros, busca de atendimento, modo emergência, perfil, agendamento, histórico de saúde, notificações e favoritos), o backend do Easy Health precisará expor, no mínimo, as rotas REST listadas abaixo. Todas as rotas (exceto autenticação e conteúdo público) devem exigir um token de acesso válido (Bearer Token / JWT).
+Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home, primeiros socorros, busca de atendimento, modo emergência, perfil, agendamento, histórico de saúde, notificações e favoritos), o backend do Easy Health expõe as rotas REST listadas abaixo. Todas as rotas (exceto autenticação, conteúdo público e modo de emergência) exigem um token de acesso válido (Bearer Token / JWT).
 
-## 21.1 Autenticação (login, cadastro, recuperação de senha)
+> **Status:** implementado em `backend/` (Node.js + TypeScript + Express + Prisma + PostgreSQL). Cada subseção abaixo corresponde a um módulo em `backend/src/modules/`.
+
+## 22.1 Autenticação (login, cadastro, recuperação de senha)
 
 | Método | Rota                        | Descrição                                    |
 | ------ | --------------------------- | -------------------------------------------- |
@@ -672,7 +738,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | POST   | `/api/auth/reset-password`  | Redefine a senha usando o código enviado     |
 | POST   | `/api/auth/verify-email`    | Confirma o e-mail cadastrado                 |
 
-## 21.2 Perfil do usuário
+## 22.2 Perfil do usuário
 
 | Método | Rota                         | Descrição                                  |
 | ------ | ---------------------------- | ------------------------------------------ |
@@ -684,7 +750,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | GET    | `/api/users/me/preferencias` | Retorna preferências/configurações do app  |
 | PUT    | `/api/users/me/preferencias` | Atualiza preferências/configurações do app |
 
-## 21.3 Primeiros socorros
+## 22.3 Primeiros socorros
 
 | Método | Rota                                   | Descrição                                    |
 | ------ | -------------------------------------- | -------------------------------------------- |
@@ -693,7 +759,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | GET    | `/api/primeiros-socorros/:id`          | Retorna o detalhe de um guia específico      |
 | GET    | `/api/primeiros-socorros/busca?query=` | Busca guias por palavra-chave                |
 
-## 21.4 Busca de atendimento / Estabelecimentos
+## 22.4 Busca de atendimento / Estabelecimentos
 
 | Método | Rota                                             | Descrição                                                                           |
 | ------ | ------------------------------------------------ | ----------------------------------------------------------------------------------- |
@@ -705,7 +771,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | GET    | `/api/estabelecimentos/:id/horarios-disponiveis` | Lista horários disponíveis para agendamento                                         |
 | GET    | `/api/especialidades`                            | Lista geral de especialidades médicas (para filtros)                                |
 
-## 21.5 Modo de emergência
+## 22.5 Modo de emergência
 
 | Método | Rota                                 | Descrição                                              |
 | ------ | ------------------------------------ | ------------------------------------------------------ |
@@ -713,7 +779,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | GET    | `/api/emergencia/contatos`           | Retorna contatos de emergência (SAMU, Bombeiros, etc.) |
 | GET    | `/api/emergencia/rotas`              | Retorna rota até o estabelecimento mais próximo        |
 
-## 21.6 Agendamento
+## 22.6 Agendamento
 
 | Método | Rota                              | Descrição                                       |
 | ------ | --------------------------------- | ----------------------------------------------- |
@@ -724,7 +790,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | DELETE | `/api/agendamentos/:id`           | Cancela um agendamento                          |
 | POST   | `/api/agendamentos/:id/confirmar` | Confirma o agendamento realizado                |
 
-## 21.7 Histórico de saúde
+## 22.7 Histórico de saúde
 
 | Método | Rota                            | Descrição                                      |
 | ------ | ------------------------------- | ---------------------------------------------- |
@@ -740,7 +806,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | POST   | `/api/historico/documentos`     | Faz upload de um documento médico              |
 | DELETE | `/api/historico/documentos/:id` | Remove um documento médico                     |
 
-## 21.8 Favoritos
+## 22.8 Favoritos
 
 | Método | Rota                 | Descrição                                 |
 | ------ | -------------------- | ----------------------------------------- |
@@ -748,7 +814,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | POST   | `/api/favoritos`     | Adiciona um estabelecimento aos favoritos |
 | DELETE | `/api/favoritos/:id` | Remove um estabelecimento dos favoritos   |
 
-## 21.9 Notificações
+## 22.9 Notificações
 
 | Método | Rota                                   | Descrição                              |
 | ------ | -------------------------------------- | -------------------------------------- |
@@ -757,7 +823,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | PUT    | `/api/notificacoes/marcar-todas-lidas` | Marca todas as notificações como lidas |
 | DELETE | `/api/notificacoes/:id`                | Remove uma notificação                 |
 
-## 21.10 Localização / Mapas (uso interno, integração com serviços externos)
+## 22.10 Localização / Mapas (uso interno, integração com serviços externos)
 
 | Método | Rota                               | Descrição                                              |
 | ------ | ---------------------------------- | ------------------------------------------------------ |
@@ -765,4 +831,54 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | GET    | `/api/localizacao/reverse-geocode` | Converte coordenadas em endereço                       |
 | GET    | `/api/localizacao/distancia`       | Calcula distância entre o usuário e um estabelecimento |
 
-> Observação: os nomes e a organização exata das rotas (versionamento como `/api/v1/...`, nomenclatura em inglês, etc.) poderão ser ajustados conforme a definição final da arquitetura do backend (seção 12). Esta lista tem como objetivo mapear, a partir das telas do protótipo, todos os recursos que a API precisará disponibilizar para o MVP e para as fases futuras do roadmap.
+## 22.11 Assistente de IA
+
+Rota adicional, não prevista no mapeamento original das telas (criada para viabilizar a funcionalidade descrita na seção 6.8). Diferente das outras, o corpo da resposta não é o dado bruto do banco — é gerado por um modelo de IA (Claude, da Anthropic) com um prompt de sistema que conhece as telas do app.
+
+| Método | Rota                     | Descrição                                                           |
+| ------ | ------------------------ | ------------------------------------------------------------------- |
+| POST   | `/api/assistant/message` | Envia uma mensagem do usuário e recebe uma resposta + tela sugerida |
+
+A chamada para a API da Anthropic acontece **inteiramente no backend** — o app nunca tem acesso à chave de API, só ao endpoint acima (ver seção 6.8 e `backend/src/modules/assistant`).
+
+> Observação: os nomes e a organização exata das rotas (versionamento como `/api/v1/...`, nomenclatura em inglês, etc.) poderão ser ajustados conforme a evolução do backend. Esta lista mapeia, a partir das telas do protótipo, todos os recursos que a API disponibiliza para o MVP e para as fases futuras do roadmap.
+
+---
+
+# 23. Como Rodar o Projeto
+
+O jeito mais rápido de rodar o Easy Health inteiro (banco + backend) é via Docker Compose, na raiz do repositório:
+
+```bash
+cp .env.example .env
+# edite o .env se quiser (principalmente ANTHROPIC_API_KEY, para testar o Assistente de IA)
+docker compose up --build
+```
+
+Isso sobe:
+
+| Serviço   | Porta padrão | O que é                         |
+| --------- | ------------ | ------------------------------- |
+| `db`      | 5432         | PostgreSQL                      |
+| `backend` | 3333         | API REST (seção 22)             |
+| `adminer` | 8080         | UI web para inspecionar o banco |
+
+No primeiro start, o backend aplica as migrations do Prisma e popula o banco com dados de demonstração automaticamente (usuário `maria.silva@email.com` / senha `senha123`, estabelecimentos e guias de primeiros socorros com o mesmo conteúdo do design). Detalhes em `backend/README.md`.
+
+Com o backend no ar, rode o app:
+
+```bash
+cd frontend
+npm install
+npx expo start
+```
+
+E aponte `frontend/app.json` → `expo.extra.apiUrl` para o endereço correto do backend a partir de onde o app está rodando (emulador, celular físico ou navegador têm endereços diferentes — ver `frontend/README.md`).
+
+Para testar as rotas da API isoladamente, sem precisar do app, use os arquivos em `backend/requests/` com a extensão **REST Client** do VS Code.
+
+---
+
+# 24. Licença
+
+Este projeto está licenciado sob a licença MIT — ver o arquivo [`LICENSE`](./LICENSE) na raiz do repositório para o texto completo.

@@ -1,0 +1,67 @@
+### Easy Health API — Autenticação (seção 21.1 do readme)
+# Rode "Cadastro" OU "Login" — não precisa dos dois toda vez.
+# O usuário de demonstração já existe no banco (populado pelo seed):
+#   email: maria.silva@email.com | senha: senha123
+
+### Cadastro
+# @name register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "nome": "João Henrique",
+  "email": "joaohenrique@example.com",
+  "telefone": "(82) 90000-0000",
+  "senha": "senha123",
+  "dataNascimento": "2000-01-01"
+}
+
+### Login (usuário de demonstração do seed)
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria.silva@email.com",
+  "senha": "senha123"
+}
+
+### Renovar token (usa o refreshToken do login acima)
+POST {{baseUrl}}/api/auth/refresh-token
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.$.refreshToken}}"
+}
+
+### Esqueci minha senha
+# O código de recuperação é impresso no console do backend (não há
+# serviço de e-mail real neste protótipo acadêmico).
+POST {{baseUrl}}/api/auth/forgot-password
+Content-Type: application/json
+
+{
+  "email": "maria.silva@email.com"
+}
+
+### Redefinir senha (troque "codigo" pelo valor impresso no console do backend)
+POST {{baseUrl}}/api/auth/reset-password
+Content-Type: application/json
+
+{
+  "codigo": "000000",
+  "novaSenha": "novaSenha123"
+}
+
+### Verificar e-mail (troque "codigo" pelo valor impresso no console do backend)
+POST {{baseUrl}}/api/auth/verify-email
+Content-Type: application/json
+
+{
+  "email": "maria.silva@email.com",
+  "codigo": "000000"
+}
+
+### Logout (revoga as sessões do usuário logado)
+POST {{baseUrl}}/api/auth/logout
+Authorization: Bearer {{login.response.body.$.accessToken}}

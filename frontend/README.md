@@ -14,6 +14,9 @@ Frontend mobile do Easy Health, incluindo o **Assistente de IA** (navegação gu
 
 ## Como rodar
 
+Primeiro suba o backend (veja `../backend/README.md` — resumindo, é
+`docker compose up --build` na raiz do projeto). Depois:
+
 ```bash
 npm install
 npx expo start
@@ -23,28 +26,38 @@ Escaneie o QR code com o app **Expo Go** no Android, ou pressione `a` para abrir
 
 ## Configuração da API
 
-A URL do backend fica em `app.json` → `expo.extra.apiUrl`. Para rodar contra o seu backend local,
-troque por algo como `http://SEU_IP_LOCAL:3333` (não use `localhost` no celular físico — ele não
-enxerga o localhost do seu computador).
+A URL do backend fica em `app.json` → `expo.extra.apiUrl`. **O endereço certo depende de onde o
+app está rodando** — isso é a causa mais comum de "não conecta com o backend":
+
+| Onde o app roda | Use |
+| --- | --- |
+| Navegador (Expo web) ou simulador iOS | `http://localhost:3333` |
+| Emulador Android | `http://10.0.2.2:3333` (o emulador não enxerga "localhost" do seu PC) |
+| Celular físico (Expo Go ou APK) | `http://SEU_IP_LOCAL:3333`, ex: `http://192.168.0.10:3333` — descubra com `ipconfig` (Windows) ou `ifconfig`/`ip a` (Mac/Linux). O celular precisa estar na mesma rede Wi-Fi. |
+
+Isso vale rodando o backend via Docker ou direto com `npm run dev` — o Docker só isola o
+processo, não muda qual IP o celular usa para alcançá-lo. Detalhes e comentários adicionais em
+`src/config/env.ts`.
 
 ## Arquitetura de pastas
 
 ```
 src/
-  theme/           cores e tipografia (mesma identidade do protótipo web)
+  theme/           cores e tipografia (mesma identidade do design)
   navigation/      RootNavigator (auth) + MainTabsNavigator (abas)
   screens/         uma tela por arquivo
-  components/      Tile, Pill, ClinicCard, AssistantFab, AssistantPanel
+  components/      Tile, Pill, ClinicCard, AssistantFab, AssistantPanel, Buttons, ScreenHeader...
   services/        um arquivo por grupo de rotas do backend (api, authService, ...)
   hooks/           useLocation (GPS)
-  data/            conteúdo local de primeiros socorros + palavras-chave de emergência
+  data/            conteúdo local (primeiros socorros, mocks) usado como fallback offline
   config/          env.ts (URL da API, números de emergência)
 ```
 
-## Rotas de backend consumidas
+## Backend
 
-Todas as rotas seguem o documento de rotas do projeto (seção 21 do readme do produto).
-Uma rota nova foi adicionada para o assistente de IA e ainda precisa ser implementada no backend:
+O backend já está implementado em `../backend` (Node.js/TypeScript + Express + Prisma +
+PostgreSQL), cobrindo todas as rotas da seção 21 do readme do projeto, mais a rota do
+Assistente de IA:
 
 ```
 POST /api/assistant/message
@@ -52,9 +65,13 @@ body: { message: string, history: { role: "user"|"assistant", content: string }[
 resposta: { reply: string, screen: "home"|"primeiros_socorros"|"busca_atendimento"|"historico"|"perfil"|"emergencia"|null }
 ```
 
-Essa rota deve chamar a API da Claude **do lado do servidor** (a chave de API nunca deve estar no
-app — ver `src/services/assistantService.ts` para o motivo). O prompt de sistema sugerido está
-documentado nos comentários desse arquivo.
+Ela chama a API da Claude **do lado do servidor** (a chave de API nunca fica no app — ver
+`src/services/assistantService.ts` para o motivo, e `backend/src/modules/assistant` para a
+implementação e o prompt de sistema).
+
+Todo service em `src/services/*.ts` tem fallback automático para dados locais (mock) quando a
+chamada à API falha — então o app continua navegável mesmo com o backend fora do ar, mas o
+comportamento esperado normal é conversar com o backend real.
 
 ## Regras de segurança do Modo Emergência (não alterar)
 
@@ -71,9 +88,10 @@ documentado nos comentários desse arquivo.
 
 ## Próximos passos sugeridos
 
-- [ ] Implementar `POST /api/assistant/message` no backend (Node.js/TypeScript, chamando a API
-      da Claude com a chave protegida em variável de ambiente).
-- [ ] Implementar as demais rotas REST do backend conforme a seção 21 do readme do produto.
 - [ ] Configurar EAS Build (`eas.json`) para gerar o `.apk`/`.aab` de teste.
 - [ ] Ícones e splash screen reais em `assets/`.
 - [ ] Testes automatizados das telas críticas (Emergência, Assistente).
+- [ ] Login social (Google/Apple) — hoje é só visual, precisa de configuração OAuth real.
+- [ ] Upload de foto de perfil, download de receita em PDF, adicionar consulta ao calendário do
+      sistema — cada um depende de uma API nativa (`expo-image-picker`, `expo-calendar`) ou rota
+      de backend ainda não implementada (ver `backend/README.md`).

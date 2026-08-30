@@ -1,0 +1,26 @@
+### Easy Health API — Estabelecimentos de saúde (seção 21.4 do readme)
+# Conteúdo público — equivalente a uma busca no mapa, não exige autenticação.
+
+### Buscar (Tela "Buscar Atendimento") — coordenadas de exemplo: São Paulo, SP
+GET {{baseUrl}}/api/estabelecimentos/busca?latitude=-23.5505&longitude=-46.6333&tipo=todos&raioKm=15
+
+### Buscar só hospitais
+GET {{baseUrl}}/api/estabelecimentos/busca?latitude=-23.5505&longitude=-46.6333&tipo=hospital
+
+### Buscar por nome
+GET {{baseUrl}}/api/estabelecimentos/busca?latitude=-23.5505&longitude=-46.6333&query=São Lucas
+
+### Detalhe de um estabelecimento (Tela "Detalhe do Estabelecimento")
+GET {{baseUrl}}/api/estabelecimentos/hosp-sao-lucas
+
+### Especialidades de um estabelecimento
+GET {{baseUrl}}/api/estabelecimentos/hosp-sao-lucas/especialidades
+
+### Preços de um estabelecimento
+GET {{baseUrl}}/api/estabelecimentos/hosp-sao-lucas/precos
+
+### Horários disponíveis em uma data (Tela "Agendar Consulta")
+GET {{baseUrl}}/api/estabelecimentos/hosp-sao-lucas/horarios-disponiveis?data=2026-09-15
+
+### Lista geral de especialidades (para filtros)
+GET {{baseUrl}}/api/especialidades

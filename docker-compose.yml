@@ -1,0 +1,61 @@
+name: easy-health
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-easyhealth}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-easyhealth}
+      POSTGRES_DB: ${POSTGRES_DB:-easyhealth}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - easy-health-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-easyhealth}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-easyhealth}:${POSTGRES_PASSWORD:-easyhealth}@db:5432/${POSTGRES_DB:-easyhealth}?schema=public
+      PORT: ${BACKEND_PORT:-3333}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-troque-este-segredo-de-access-token}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-troque-este-segredo-de-refresh-token}
+      JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-15m}
+      JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-5}
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+      SEED_ON_START: ${SEED_ON_START:-true}
+    ports:
+      - "${BACKEND_PORT:-3333}:3333"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3333/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # UI web opcional para inspecionar o banco (útil para depuração e para a
+  # apresentação do projeto) — acesse em http://localhost:8080, sistema
+  # "PostgreSQL", servidor "db", com as mesmas credenciais do .env.
+  adminer:
+    image: adminer:4
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "${ADMINER_PORT:-8080}:8080"
+
+volumes:
+  easy-health-db-data:

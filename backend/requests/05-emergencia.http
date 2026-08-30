@@ -1,0 +1,12 @@
+### Easy Health API — Modo Emergência (seção 21.5 do readme)
+# Rotas PÚBLICAS de propósito — informação de emergência nunca deve
+# depender de estar logado ou de o token ainda ser válido.
+
+### Contatos de emergência (SAMU, Bombeiros, Polícia)
+GET {{baseUrl}}/api/emergencia/contatos
+
+### Hospitais/UPAs mais próximos — coordenadas de exemplo: São Paulo, SP
+GET {{baseUrl}}/api/emergencia/hospitais-proximos?latitude=-23.5505&longitude=-46.6333
+
+### Distância em linha reta até um estabelecimento
+GET {{baseUrl}}/api/emergencia/rotas?estabelecimentoId=hosp-sao-lucas&latitude=-23.5505&longitude=-46.6333

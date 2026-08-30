@@ -1,0 +1,29 @@
+### Easy Health API — Notificações (seção 21.9 do readme)
+# Todas exigem autenticação. Já vêm populadas pelo seed.
+
+### Login
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria.silva@email.com",
+  "senha": "senha123"
+}
+
+### Listar notificações (Tela "Notificações", agrupadas por hoje/ontem/semana)
+GET {{baseUrl}}/api/notificacoes
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Marcar uma notificação como lida
+# Troque "<id>" por um id retornado na listagem acima.
+PUT {{baseUrl}}/api/notificacoes/<id>/lida
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Marcar todas como lidas
+PUT {{baseUrl}}/api/notificacoes/marcar-todas-lidas
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### Remover uma notificação
+DELETE {{baseUrl}}/api/notificacoes/<id>
+Authorization: Bearer {{login.response.body.$.accessToken}}
