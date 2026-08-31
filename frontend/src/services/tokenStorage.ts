@@ -1,49 +1,74 @@
-*** Begin Patch
-*** Update File: frontend/src/services/tokenStorage.ts
-@@
--const isWeb = Platform.OS === "web";
-+const isWeb = Platform.OS === "web";
-@@
- async function getItem(key: string): Promise<string | null> {
--  return isWeb ? AsyncStorage.getItem(key) : SecureStore.getItemAsync(key);
-+  if (isWeb) return AsyncStorage.getItem(key);
-+  try {
-+    return await SecureStore.getItemAsync(key);
-+  } catch (err) {
-+    // Fallback para AsyncStorage se SecureStore falhar em runtime (evita crashes na web/native)
-+    try {
-+      return AsyncStorage.getItem(key);
-+    } catch {
-+      return null;
-+    }
-+  }
- }
-@@
- async function setItem(key: string, value: string): Promise<void> {
--  await (isWeb ? AsyncStorage.setItem(key, value) : SecureStore.setItemAsync(key, value));
-+  if (isWeb) return AsyncStorage.setItem(key, value);
-+  try {
-+    return await SecureStore.setItemAsync(key, value);
-+  } catch {
-+    try {
-+      return AsyncStorage.setItem(key, value);
-+    } catch {
-+      // swallow - storage best-effort
-+    }
-+  }
- }
-@@
- async function deleteItem(key: string): Promise<void> {
--  await (isWeb ? AsyncStorage.removeItem(key) : SecureStore.deleteItemAsync(key));
-+  if (isWeb) return AsyncStorage.removeItem(key);
-+  try {
-+    return await SecureStore.deleteItemAsync(key);
-+  } catch {
-+    try {
-+      return AsyncStorage.removeItem(key);
-+    } catch {
-+      // swallow
-+    }
-+  }
- }
-*** End Patch
+import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const ACCESS_TOKEN_KEY = 'access_token';
+const REFRESH_TOKEN_KEY = 'refresh_token';
+
+let useSecureStore = true;
+
+const testSecureStore = async () => {
+  try {
+    await SecureStore.setItemAsync('__test__', 'test');
+    await SecureStore.deleteItemAsync('__test__');
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const tokenStorage = {
+  async init() {
+    useSecureStore = await testSecureStore();
+  },
+
+  async setTokens(accessToken: string, refreshToken: string) {
+    try {
+      if (useSecureStore) {
+        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+      } else {
+        await AsyncStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+        await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      }
+    } catch (e) {
+      console.error('Failed to store tokens:', e);
+    }
+  },
+
+  async getAccessToken(): Promise<string | null> {
+    try {
+      if (useSecureStore) {
+        return await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+      } else {
+        return await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
+      }
+    } catch {
+      return null;
+    }
+  },
+
+  async getRefreshToken(): Promise<string | null> {
+    try {
+      if (useSecureStore) {
+        return await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      } else {
+        return await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+      }
+    } catch {
+      return null;
+    }
+  },
+
+  async clear() {
+    try {
+      if (useSecureStore) {
+        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+        await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+      } else {
+        await AsyncStorage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
+      }
+    } catch (e) {
+      console.error('Failed to clear tokens:', e);
+    }
+  },
+};
