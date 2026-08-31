@@ -8,6 +8,7 @@ import { fonts, spacing } from "@/theme/typography";
 import { PrimaryButton, InlineLink } from "@/components/Buttons";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { authService } from "@/services/authService";
+import { getApiErrorMessage } from "@/utils/apiError";
 import type { RootStackParamList } from "@/navigation/types";
 import { inputStyle } from "@/theme/inputStyle";
 
@@ -26,8 +27,8 @@ export function ForgotPasswordScreen() {
       await authService.forgotPassword(email);
       Alert.alert("Link enviado", "Verifique seu e-mail para redefinir sua senha.");
       navigation.goBack();
-    } catch {
-      Alert.alert("Não foi possível enviar", "Verifique o e-mail informado e tente novamente.");
+    } catch (error) {
+      Alert.alert("Não foi possível enviar", getApiErrorMessage(error, "Verifique o e-mail informado e tente novamente."));
     } finally {
       setLoading(false);
     }

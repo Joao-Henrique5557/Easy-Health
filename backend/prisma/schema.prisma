@@ -7,7 +7,13 @@
 // mudar junto.
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  // "native" cobre seu ambiente local (fora do Docker). O segundo target
+  // é o binário certo para rodar em cima de node:*-alpine (musl + OpenSSL
+  // 3.x) — sem isso, o Prisma depende de auto-detectar a versão do OpenSSL
+  // dentro do container e, se detectar errado (como aconteceu aqui), o
+  // engine falha silenciosamente ao iniciar.
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {

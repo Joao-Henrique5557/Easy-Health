@@ -9,7 +9,8 @@ import { inputStyle } from "@/theme/inputStyle";
 import { PrimaryButton } from "@/components/Buttons";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { authService } from "@/services/authService";
-import { brDateToISO } from "@/utils/date";
+import { brDateToISO, maskDateInput } from "@/utils/date";
+import { getApiErrorMessage } from "@/utils/apiError";
 import type { RootStackParamList } from "@/navigation/types";
 
 function Field({
@@ -27,7 +28,7 @@ function Field({
   onChangeText: (v: string) => void;
   placeholder: string;
   secure?: boolean;
-  keyboardType?: "default" | "email-address" | "phone-pad";
+  keyboardType?: "default" | "email-address" | "phone-pad" | "number-pad";
   toggleSecure?: boolean;
   onToggleSecure?: () => void;
 }) {
@@ -72,6 +73,10 @@ export function RegisterScreen({ onAuthenticated }: { onAuthenticated: () => voi
       Alert.alert("Preencha os campos", "Nome, e-mail e senha são obrigatórios.");
       return;
     }
+    if (senha.length < 6) {
+      Alert.alert("Senha muito curta", "A senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
     if (senha !== confirmarSenha) {
       Alert.alert("Senhas diferentes", "A confirmação precisa ser igual à senha criada.");
       return;
@@ -80,6 +85,17 @@ export function RegisterScreen({ onAuthenticated }: { onAuthenticated: () => voi
       Alert.alert("Termos de uso", "Você precisa aceitar os Termos de Uso e Políticas para continuar.");
       return;
     }
+
+    let dataNascimentoISO: string | undefined;
+    if (dataNascimento) {
+      const converted = brDateToISO(dataNascimento);
+      if (!converted) {
+        Alert.alert("Data inválida", "Digite a data de nascimento no formato DD/MM/AAAA.");
+        return;
+      }
+      dataNascimentoISO = converted;
+    }
+
     setLoading(true);
     try {
       await authService.register({
@@ -87,11 +103,11 @@ export function RegisterScreen({ onAuthenticated }: { onAuthenticated: () => voi
         email,
         telefone,
         senha,
-        dataNascimento: brDateToISO(dataNascimento),
+        dataNascimento: dataNascimentoISO,
       });
       onAuthenticated();
-    } catch {
-      Alert.alert("Não foi possível cadastrar", "Verifique os dados e tente novamente.");
+    } catch (error) {
+      Alert.alert("Não foi possível cadastrar", getApiErrorMessage(error, "Verifique os dados e tente novamente."));
     } finally {
       setLoading(false);
     }
@@ -105,7 +121,13 @@ export function RegisterScreen({ onAuthenticated }: { onAuthenticated: () => voi
         <Field label="Nome completo" placeholder="Ex: Maria Silva" value={nome} onChangeText={setNome} />
         <Field label="E-mail" placeholder="exemplo@email.com" value={email} onChangeText={setEmail} keyboardType="email-address" />
         <Field label="Telefone" placeholder="(11) 99999-9999" value={telefone} onChangeText={setTelefone} keyboardType="phone-pad" />
-        <Field label="Data de nascimento" placeholder="DD/MM/AAAA" value={dataNascimento} onChangeText={setDataNascimento} />
+        <Field
+          label="Data de nascimento"
+          placeholder="DD/MM/AAAA"
+          value={dataNascimento}
+          onChangeText={(v) => setDataNascimento(maskDateInput(v))}
+          keyboardType="number-pad"
+        />
         <Field
           label="Senha"
           placeholder="Crie uma senha forte"

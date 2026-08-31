@@ -5,7 +5,10 @@ export const registerSchema = z.object({
   email: z.string().email("E-mail inválido."),
   telefone: z.string().optional(),
   senha: z.string().min(6, "A senha precisa ter pelo menos 6 caracteres."),
-  dataNascimento: z.string().optional(),
+  dataNascimento: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Data de nascimento deve estar no formato AAAA-MM-DD.")
+    .optional(),
 });
 
 export const loginSchema = z.object({

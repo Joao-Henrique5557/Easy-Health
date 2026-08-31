@@ -9,6 +9,7 @@ import { inputStyle } from "@/theme/inputStyle";
 import { PrimaryButton, InlineLink } from "@/components/Buttons";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { authService } from "@/services/authService";
+import { getApiErrorMessage } from "@/utils/apiError";
 import type { RootStackParamList } from "@/navigation/types";
 
 export function LoginScreen({ onAuthenticated }: { onAuthenticated: () => void }) {
@@ -27,8 +28,8 @@ export function LoginScreen({ onAuthenticated }: { onAuthenticated: () => void }
     try {
       await authService.login({ email, senha });
       onAuthenticated();
-    } catch {
-      Alert.alert("Não foi possível entrar", "Verifique seu e-mail e senha e tente novamente.");
+    } catch (error) {
+      Alert.alert("Não foi possível entrar", getApiErrorMessage(error, "Verifique seu e-mail e senha e tente novamente."));
     } finally {
       setLoading(false);
     }

@@ -4,9 +4,9 @@ import { tokenStorage } from "./tokenStorage";
 export interface RegisterPayload {
   nome: string;
   email: string;
-  telefone: string;
+  telefone?: string;
   senha: string;
-  dataNascimento: string; // ISO 8601
+  dataNascimento?: string; // ISO 8601 (AAAA-MM-DD)
 }
 
 export interface LoginPayload {

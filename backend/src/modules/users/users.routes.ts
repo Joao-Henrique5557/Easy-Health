@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../../lib/prisma";
 import { hash } from "../../lib/hash";
+import { parseDateOrThrow } from "../../lib/date";
 import { asyncHandler } from "../../middleware/asyncHandler";
 import { requireAuth } from "../../middleware/auth";
 import { badRequest, notFound, unauthorized } from "../../middleware/errors";
@@ -34,7 +35,7 @@ usersRouter.put(
       where: { id: req.userId! },
       data: {
         ...input,
-        dataNascimento: input.dataNascimento ? new Date(input.dataNascimento) : undefined,
+        dataNascimento: input.dataNascimento ? parseDateOrThrow(input.dataNascimento, "Data de nascimento") : undefined,
       },
     });
     res.json(toUserProfile(user));

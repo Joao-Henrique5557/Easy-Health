@@ -9,10 +9,11 @@ import { ScreenHeader } from "@/components/ScreenHeader";
 import { Avatar } from "@/components/Avatar";
 import { PrimaryButton } from "@/components/Buttons";
 import { profileService, UserProfile } from "@/services/profileService";
-import { isoDateToBR, brDateToISO } from "@/utils/date";
+import { isoDateToBR, brDateToISO, maskDateInput } from "@/utils/date";
+import { getApiErrorMessage } from "@/utils/apiError";
 import type { RootStackParamList } from "@/navigation/types";
 
-function Field({ label, value, onChangeText, keyboardType }: { label: string; value: string; onChangeText: (v: string) => void; keyboardType?: "default" | "email-address" | "phone-pad" }) {
+function Field({ label, value, onChangeText, keyboardType }: { label: string; value: string; onChangeText: (v: string) => void; keyboardType?: "default" | "email-address" | "phone-pad" | "number-pad" }) {
   return (
     <View style={{ marginBottom: 14 }}>
       <Text style={{ fontFamily: fonts.semiBold, fontSize: 12, color: colors.ink, marginBottom: 6 }}>{label}</Text>
@@ -53,16 +54,26 @@ export function EditProfileScreen() {
   }, []);
 
   async function handleSave() {
+    let dataNascimentoISO: string | undefined;
+    if (form.dataNascimento) {
+      const converted = brDateToISO(form.dataNascimento);
+      if (!converted) {
+        Alert.alert("Data inválida", "Digite a data de nascimento no formato DD/MM/AAAA.");
+        return;
+      }
+      dataNascimentoISO = converted;
+    }
+
     setSaving(true);
     try {
       await profileService.updateMe({
         ...form,
-        dataNascimento: brDateToISO(form.dataNascimento),
+        dataNascimento: dataNascimentoISO,
       });
       Alert.alert("Perfil atualizado", "Seus dados foram salvos com sucesso.");
       navigation.goBack();
-    } catch {
-      Alert.alert("Erro", "Não foi possível salvar suas alterações agora.");
+    } catch (error) {
+      Alert.alert("Erro", getApiErrorMessage(error, "Não foi possível salvar suas alterações agora."));
     } finally {
       setSaving(false);
     }
@@ -91,7 +102,12 @@ export function EditProfileScreen() {
             <Field label="Nome completo" value={form.nome} onChangeText={(v) => setForm({ ...form, nome: v })} />
             <Field label="E-mail" value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} keyboardType="email-address" />
             <Field label="Telefone" value={form.telefone} onChangeText={(v) => setForm({ ...form, telefone: v })} keyboardType="phone-pad" />
-            <Field label="Data de nascimento" value={form.dataNascimento} onChangeText={(v) => setForm({ ...form, dataNascimento: v })} />
+            <Field
+              label="Data de nascimento"
+              value={form.dataNascimento}
+              onChangeText={(v) => setForm({ ...form, dataNascimento: maskDateInput(v) })}
+              keyboardType="number-pad"
+            />
             <Field label="Tipo Sanguíneo" value={form.tipoSanguineo} onChangeText={(v) => setForm({ ...form, tipoSanguineo: v })} />
             <Field label="Alergias" value={form.alergias} onChangeText={(v) => setForm({ ...form, alergias: v })} />
             <Field label="Medicamentos em uso" value={form.medicamentosEmUso} onChangeText={(v) => setForm({ ...form, medicamentosEmUso: v })} />

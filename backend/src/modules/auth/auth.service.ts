@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { hash } from "../../lib/hash";
 import { jwtLib } from "../../lib/jwt";
+import { parseDateOrThrow } from "../../lib/date";
 import { badRequest, conflict, notFound, unauthorized } from "../../middleware/errors";
 
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
@@ -37,7 +38,7 @@ export const authService = {
         email: input.email,
         telefone: input.telefone,
         senhaHash,
-        dataNascimento: input.dataNascimento ? new Date(input.dataNascimento) : undefined,
+        dataNascimento: input.dataNascimento ? parseDateOrThrow(input.dataNascimento, "Data de nascimento") : undefined,
       },
     });
 
