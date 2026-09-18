@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { colors } from "@/theme/colors";
@@ -36,6 +37,8 @@ export function EditProfileScreen() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     profileService.getMe().then((p: UserProfile) => {
@@ -49,6 +52,7 @@ export function EditProfileScreen() {
         medicamentosEmUso: p.medicamentosEmUso ?? "",
         planoDeSaude: p.planoDeSaude ?? "",
       });
+      setAvatarUrl(p.avatarUrl ?? null);
       setLoading(false);
     });
   }, []);
@@ -79,10 +83,45 @@ export function EditProfileScreen() {
     }
   }
 
-  function handleChangePhoto() {
-    // Seleção real de imagem usaria expo-image-picker (API de galeria/câmera
-    // do Android/iOS) — deixado como próximo passo do backlog.
-    Alert.alert("Em breve", "A troca de foto de perfil ainda está em desenvolvimento.");
+  async function handleChangePhoto() {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permissão necessária",
+        "Precisamos de acesso às suas fotos para trocar a imagem de perfil. Ative em Ajustes do celular."
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5, // já comprime aqui — importante porque vira base64 (ver nota no profileService)
+      base64: true,
+    });
+
+    if (result.canceled || !result.assets?.[0]?.base64) {
+      return;
+    }
+
+    const asset = result.assets[0];
+    const mimeType = asset.mimeType ?? "image/jpeg";
+    const dataUri = `data:${mimeType};base64,${asset.base64}`;
+
+    setUploadingPhoto(true);
+    const previousAvatarUrl = avatarUrl;
+    setAvatarUrl(dataUri); // atualização otimista — já mostra a foto escolhida na hora
+
+    try {
+      const updated = await profileService.updateAvatar(dataUri);
+      setAvatarUrl(updated.avatarUrl ?? dataUri);
+    } catch (error) {
+      setAvatarUrl(previousAvatarUrl); // desfaz a atualização otimista se a API falhar
+      Alert.alert("Não foi possível atualizar a foto", getApiErrorMessage(error, "Tente novamente em instantes."));
+    } finally {
+      setUploadingPhoto(false);
+    }
   }
 
   return (
@@ -93,9 +132,28 @@ export function EditProfileScreen() {
         {!loading && (
           <>
             <View style={{ alignItems: "center", marginBottom: 24 }}>
-              <Avatar size={84} editable onPressEdit={handleChangePhoto} />
+              <View>
+                <Avatar uri={avatarUrl} size={84} editable={!uploadingPhoto} onPressEdit={handleChangePhoto} />
+                {uploadingPhoto && (
+                  <View
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      borderRadius: 42,
+                      backgroundColor: "rgba(0,0,0,0.35)",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <ActivityIndicator color={colors.white} />
+                  </View>
+                )}
+              </View>
               <Text style={{ fontFamily: fonts.semiBold, fontSize: 12.5, color: colors.primary, marginTop: 10 }}>
-                Alterar foto de perfil
+                {uploadingPhoto ? "Enviando foto..." : "Alterar foto de perfil"}
               </Text>
             </View>
 

@@ -37,6 +37,12 @@
           "icon": "./assets/notification-icon.png",
           "color": "#146B63"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Easy Health usa suas fotos para você escolher uma imagem de perfil."
+        }
       ]
     ],
     "extra": {

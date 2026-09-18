@@ -64,5 +64,21 @@ export const profileService = {
     return data;
   },
 
+  /**
+   * O backend (`backend/src/modules/users/users.routes.ts`) espera
+   * { avatarUrl: string } — é `z.string().url()`, não um upload
+   * multipart de verdade (não há storage de arquivo no backend ainda).
+   * Por isso mandamos a foto como data URI (base64), que passa na
+   * validação de URL. Funciona para o MVP acadêmico, mas não é o ideal
+   * para produção: cada foto vira uma string grande guardada direto na
+   * coluna do banco. Quando o backend tiver um endpoint de upload real
+   * (multer + storage em disco/S3/Cloudinary), troque isso por enviar o
+   * arquivo e receber de volta uma URL curta.
+   */
+  async updateAvatar(dataUri: string): Promise<UserProfile> {
+    const { data } = await api.patch<UserProfile>("/api/users/me/avatar", { avatarUrl: dataUri });
+    return data;
+  },
+
   calcularIdade,
 };
