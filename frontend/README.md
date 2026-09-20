@@ -4,7 +4,7 @@ Frontend mobile do Easy Health, incluindo o **Assistente de IA** (navegação gu
 
 ## Stack
 
-- **Expo (React Native) + TypeScript**
+- **Expo (React Native) + JavaScript**
 - **React Navigation** (stack + bottom tabs)
 - **axios** com interceptors de auth (access/refresh token)
 - **expo-secure-store** — tokens no Android Keystore / iOS Keychain (nunca em `AsyncStorage` puro)
@@ -37,7 +37,7 @@ app está rodando** — isso é a causa mais comum de "não conecta com o backen
 
 Isso vale rodando o backend via Docker ou direto com `npm run dev` — o Docker só isola o
 processo, não muda qual IP o celular usa para alcançá-lo. Detalhes e comentários adicionais em
-`src/config/env.ts`.
+`src/config/env.js`.
 
 ## Arquitetura de pastas
 
@@ -50,13 +50,13 @@ src/
   services/        um arquivo por grupo de rotas do backend (api, authService, ...)
   hooks/           useLocation (GPS)
   data/            conteúdo local (primeiros socorros, mocks) usado como fallback offline
-  config/          env.ts (URL da API, números de emergência)
+  config/          env.js (URL da API, números de emergência)
 ```
 
 ## Backend
 
-O backend já está implementado em `../backend` (Node.js/TypeScript + Express + Prisma +
-PostgreSQL), cobrindo todas as rotas da seção 21 do readme do projeto, mais a rota do
+O backend já está implementado em `../backend` (Java 17 + Jakarta Servlets + Tomcat +
+PostgreSQL JDBC), cobrindo as rotas da seção 21 do readme do projeto, mais a rota do
 Assistente de IA:
 
 ```
@@ -65,11 +65,11 @@ body: { message: string, history: { role: "user"|"assistant", content: string }[
 resposta: { reply: string, screen: "home"|"primeiros_socorros"|"busca_atendimento"|"historico"|"perfil"|"emergencia"|null }
 ```
 
-Ela chama a API da Claude **do lado do servidor** (a chave de API nunca fica no app — ver
-`src/services/assistantService.ts` para o motivo, e `backend/src/modules/assistant` para a
-implementação e o prompt de sistema).
+No MVP Java, o assistente possui uma resposta demonstrativa segura. Uma integração
+real com um provedor de IA deve permanecer no servidor; a chave nunca deve ficar no
+aplicativo.
 
-Todo service em `src/services/*.ts` tem fallback automático para dados locais (mock) quando a
+Todo service em `src/services/*.js` tem fallback automático para dados locais (mock) quando a
 chamada à API falha — então o app continua navegável mesmo com o backend fora do ar, mas o
 comportamento esperado normal é conversar com o backend real.
 
@@ -79,9 +79,9 @@ comportamento esperado normal é conversar com o backend real.
    nativo via `Linking.openURL("tel:...")` — quem confirma a ligação é o sistema operacional,
    com o toque do usuário.
 2. A detecção de emergência no assistente de IA roda **localmente**, por palavras-chave
-   (`src/data/emergencyKeywords.ts`), antes de qualquer chamada de rede. Isso garante que o
+   (`src/data/emergencyKeywords.js`), antes de qualquer chamada de rede. Isso garante que o
    usuário chegue à tela de emergência mesmo sem internet ou se o backend/IA estiver fora do ar.
-3. O conteúdo de primeiros socorros tem uma cópia local (`src/data/firstAidContent.ts`) usada como
+3. O conteúdo de primeiros socorros tem uma cópia local (`src/data/firstAidContent.js`) usada como
    fallback automático se a API estiver indisponível.
 4. Nenhum texto do assistente de IA deve sugerir diagnóstico, dosagem de medicamento, ou que o
    app "vai ligar" por conta própria — isso é reforçado no prompt de sistema do backend.

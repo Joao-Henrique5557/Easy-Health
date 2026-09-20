@@ -1,0 +1,1 @@
+INSERT INTO establishments(id,nome,tipo,endereco,latitude,longitude,status) VALUES('hosp-sao-lucas','Hospital São Lucas','hospital','Av. Paulista, 1000',-23.5505,-46.6333,'aberto') ON CONFLICT DO NOTHING;

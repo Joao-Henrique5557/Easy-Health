@@ -1,3 +1,5 @@
+@baseUrl = http://localhost:3333
+
 ### Easy Health API — Autenticação (seção 21.1 do readme)
 # Rode "Cadastro" OU "Login" — não precisa dos dois toda vez.
 # O usuário de demonstração já existe no banco (populado pelo seed):
@@ -63,5 +65,4 @@ Content-Type: application/json
 }
 
 ### Logout (revoga as sessões do usuário logado)
-POST {{baseUrl}}/api/auth/logout
-Authorization: Bearer {{login.response.body.$.accessToken}}
+POST {{baseUrl}}/api/auth/logout?accessToken={{login.response.body.$.accessToken}}

@@ -1,3 +1,5 @@
+@baseUrl = http://localhost:3333
+
 ### Easy Health API — Favoritos (seção 21.8 do readme)
 # Todas exigem autenticação.
 
@@ -12,12 +14,10 @@ Content-Type: application/json
 }
 
 ### Listar meus favoritos (Tela "Favoritos")
-GET {{baseUrl}}/api/favoritos
-Authorization: Bearer {{login.response.body.$.accessToken}}
+GET {{baseUrl}}/api/favoritos?accessToken={{login.response.body.$.accessToken}}
 
 ### Favoritar um estabelecimento
-POST {{baseUrl}}/api/favoritos
-Authorization: Bearer {{login.response.body.$.accessToken}}
+POST {{baseUrl}}/api/favoritos?accessToken={{login.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
@@ -25,5 +25,4 @@ Content-Type: application/json
 }
 
 ### Remover dos favoritos (:id é o id do ESTABELECIMENTO, não do favorito)
-DELETE {{baseUrl}}/api/favoritos/hosp-sao-lucas
-Authorization: Bearer {{login.response.body.$.accessToken}}
+DELETE {{baseUrl}}/api/favoritos/hosp-sao-lucas?accessToken={{login.response.body.$.accessToken}}

@@ -1,3 +1,5 @@
+@baseUrl = http://localhost:3333
+
 ### Easy Health API — Localização / Mapas (seção 21.10 do readme)
 # Uso interno — implementado via Nominatim (OpenStreetMap), sem chave de API.
 # Rotas públicas.

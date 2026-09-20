@@ -1,3 +1,5 @@
+@baseUrl = http://localhost:3333
+
 ### Easy Health API — Modo Emergência (seção 21.5 do readme)
 # Rotas PÚBLICAS de propósito — informação de emergência nunca deve
 # depender de estar logado ou de o token ainda ser válido.

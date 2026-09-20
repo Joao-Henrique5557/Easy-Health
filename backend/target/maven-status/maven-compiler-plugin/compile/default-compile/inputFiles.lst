@@ -1,0 +1,8 @@
+/home/joao-henrique/projetos/Easy-Health/backend/src/main/java/controller/ApiServlet.java
+/home/joao-henrique/projetos/Easy-Health/backend/src/main/java/dao/TokenDAO.java
+/home/joao-henrique/projetos/Easy-Health/backend/src/main/java/dao/UserDAO.java
+/home/joao-henrique/projetos/Easy-Health/backend/src/main/java/model/User.java
+/home/joao-henrique/projetos/Easy-Health/backend/src/main/java/util/Database.java
+/home/joao-henrique/projetos/Easy-Health/backend/src/main/java/util/DatabaseInitializer.java
+/home/joao-henrique/projetos/Easy-Health/backend/src/main/java/util/Json.java
+/home/joao-henrique/projetos/Easy-Health/backend/src/main/java/util/Password.java

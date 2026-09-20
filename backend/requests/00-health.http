@@ -1,3 +1,5 @@
+@baseUrl = http://localhost:3333
+
 ### Easy Health API — Health Check
 # Confirma que o backend está de pé (usado também pelo healthcheck do docker-compose).
 GET {{baseUrl}}/health

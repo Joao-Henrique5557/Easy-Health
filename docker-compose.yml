@@ -27,24 +27,17 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-easyhealth}:${POSTGRES_PASSWORD:-easyhealth}@db:5432/${POSTGRES_DB:-easyhealth}?schema=public
-      PORT: ${BACKEND_PORT:-3333}
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-troque-este-segredo-de-access-token}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-troque-este-segredo-de-refresh-token}
-      JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-15m}
-      JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-5}
+      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-easyhealth}
+      DB_USER: ${POSTGRES_USER:-easyhealth}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-easyhealth}
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
-      SEED_ON_START: ${SEED_ON_START:-true}
     ports:
-      - "${BACKEND_PORT:-3333}:3333"
+      - "${BACKEND_PORT:-3333}:8080"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3333/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
 
   # UI web opcional para inspecionar o banco (útil para depuração e para a
   # apresentação do projeto) — acesse em http://localhost:8080, sistema

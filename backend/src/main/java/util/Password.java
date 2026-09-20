@@ -1,0 +1,1 @@
+package util; import org.mindrot.jbcrypt.BCrypt; public final class Password{private Password(){}public static String hash(String s){return BCrypt.hashpw(s,BCrypt.gensalt());}public static boolean matches(String s,String h){try{return BCrypt.checkpw(s,h);}catch(Exception e){return false;}}}

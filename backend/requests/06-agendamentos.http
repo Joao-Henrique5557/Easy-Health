@@ -1,3 +1,5 @@
+@baseUrl = http://localhost:3333
+
 ### Easy Health API — Agendamentos (seção 21.6 do readme)
 # Todas exigem autenticação.
 
@@ -12,13 +14,11 @@ Content-Type: application/json
 }
 
 ### Listar meus agendamentos (Home > Próximas Consultas / Histórico)
-GET {{baseUrl}}/api/agendamentos
-Authorization: Bearer {{login.response.body.$.accessToken}}
+GET {{baseUrl}}/api/agendamentos?accessToken={{login.response.body.$.accessToken}}
 
 ### Criar agendamento (Tela "Agendar Consulta")
 # @name createBooking
-POST {{baseUrl}}/api/agendamentos
-Authorization: Bearer {{login.response.body.$.accessToken}}
+POST {{baseUrl}}/api/agendamentos?accessToken={{login.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
@@ -29,12 +29,10 @@ Content-Type: application/json
 }
 
 ### Detalhe de um agendamento
-GET {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}
-Authorization: Bearer {{login.response.body.$.accessToken}}
+GET {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}?accessToken={{login.response.body.$.accessToken}}
 
 ### Reagendar (mudar data/horário)
-PUT {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}
-Authorization: Bearer {{login.response.body.$.accessToken}}
+PUT {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}?accessToken={{login.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
@@ -42,9 +40,7 @@ Content-Type: application/json
 }
 
 ### Confirmar agendamento
-POST {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}/confirmar
-Authorization: Bearer {{login.response.body.$.accessToken}}
+POST {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}/confirmar?accessToken={{login.response.body.$.accessToken}}
 
 ### Cancelar agendamento
-DELETE {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}
-Authorization: Bearer {{login.response.body.$.accessToken}}
+DELETE {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}?accessToken={{login.response.body.$.accessToken}}

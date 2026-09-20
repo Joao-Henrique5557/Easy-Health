@@ -431,14 +431,14 @@ Arquitetura implementada:
                │  HTTPS / JWT (Bearer Token)
                ▼
 ┌─────────────────────────────┐
-│      Backend (Express)      │
-│   Node.js + TypeScript      │
+│      Backend (Java MVC)     │
+│ Jakarta Servlets + Tomcat  │
 └───────┬───────────┬─────────┘
         │           │
         ▼           ▼
 ┌────────────┐ ┌───────────────┐
 │ PostgreSQL │ │ Serviços      │
-│ (Prisma)   │ │ Externos      │
+│ JDBC/DAOs  │ │ Externos      │
 └────────────┘ └───────┬───────┘
                        │
              ┌─────────┼─────────┐
@@ -465,11 +465,10 @@ Stack efetivamente usada no projeto:
 
 ## Backend
 
-- Node.js + TypeScript
-- Express (REST API)
-- Prisma ORM
-- JWT (access + refresh token com rotação)
-- Zod (validação de entrada)
+- Java 17
+- Jakarta Servlets 6 + Tomcat 10
+- MVC didático: controllers/servlets, models, DAOs JDBC e utilitários
+- Gson (JSON), BCrypt (senhas) e tokens de sessão
 
 ## Banco de dados
 
@@ -603,6 +602,11 @@ O primeiro MVP deve concentrar-se nas funcionalidades essenciais da proposta.
 
 O desenvolvimento do Easy Health deve ser realizado de maneira incremental e iterativa.
 
+O guia operacional, o backlog priorizado com histórias de usuário e os modelos
+de trabalho estão em [`docs/agile/README.md`](docs/agile/README.md). Ele define
+as cerimônias, o fluxo do quadro, a Definition of Ready (DoR), a Definition of
+Done (DoD), critérios de aceitação e a ordem sugerida das próximas Sprints.
+
 O projeto pode utilizar um fluxo baseado em:
 
 ```text
@@ -714,7 +718,7 @@ Dessa forma, o Easy Health busca oferecer **mais praticidade, rapidez, organiza�
 **Status:** MVP implementado (frontend + backend + infraestrutura Docker) — validação e testes em andamento.
 
 - Frontend (React Native/Expo): todas as telas do design implementadas e conectadas ao backend, com fallback local para conteúdo de segurança (primeiros socorros) e dados de demonstração.
-- Backend (Node.js/TypeScript/Express/Prisma/PostgreSQL): todas as rotas da seção 22 implementadas, incluindo a rota do Assistente de IA.
+- Backend (Java 17/Jakarta Servlets/PostgreSQL JDBC): API MVC com DAOs e rotas compatíveis com a seção 22; recursos externos de IA, mapas e agenda permanecem mockados no MVP.
 - Infraestrutura: `docker-compose.yml` sobe banco + API + UI de administração do banco com um único comando (ver seção 23).
 - Pendências: login social (OAuth real), upload de arquivos (foto de perfil, documentos médicos), geração de PDF de receita, integração com sistemas oficiais de saúde (RNDS) — ver roadmap (seção 16) e `backend/README.md`/`frontend/README.md` para o detalhamento técnico de cada pendência.
 
@@ -724,7 +728,7 @@ Dessa forma, o Easy Health busca oferecer **mais praticidade, rapidez, organiza�
 
 Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home, primeiros socorros, busca de atendimento, modo emergência, perfil, agendamento, histórico de saúde, notificações e favoritos), o backend do Easy Health expõe as rotas REST listadas abaixo. Todas as rotas (exceto autenticação, conteúdo público e modo de emergência) exigem um token de acesso válido (Bearer Token / JWT).
 
-> **Status:** implementado em `backend/` (Node.js + TypeScript + Express + Prisma + PostgreSQL). Cada subseção abaixo corresponde a um módulo em `backend/src/modules/`.
+> **Status:** implementado em `backend/` (Java + Jakarta Servlets + PostgreSQL). A organização didática está em `backend/src/main/java/model`, `dao`, `controller` e `util`.
 
 ## 22.1 Autenticação (login, cadastro, recuperação de senha)
 
@@ -839,7 +843,7 @@ Rota adicional, não prevista no mapeamento original das telas (criada para viab
 | ------ | ------------------------ | ------------------------------------------------------------------- |
 | POST   | `/api/assistant/message` | Envia uma mensagem do usuário e recebe uma resposta + tela sugerida |
 
-A chamada para a API da Anthropic acontece **inteiramente no backend** — o app nunca tem acesso à chave de API, só ao endpoint acima (ver seção 6.8 e `backend/src/modules/assistant`).
+A rota possui uma resposta demonstrativa no backend Java. Uma integração real com a Anthropic deve ser adicionada posteriormente, mantendo a chave somente no servidor.
 
 > Observação: os nomes e a organização exata das rotas (versionamento como `/api/v1/...`, nomenclatura em inglês, etc.) poderão ser ajustados conforme a evolução do backend. Esta lista mapeia, a partir das telas do protótipo, todos os recursos que a API disponibiliza para o MVP e para as fases futuras do roadmap.
 
@@ -851,7 +855,7 @@ O jeito mais rápido de rodar o Easy Health inteiro (banco + backend) é via Doc
 
 ```bash
 cp .env.example .env
-# edite o .env se quiser (principalmente ANTHROPIC_API_KEY, para testar o Assistente de IA)
+# edite o .env se quiser (principalmente credenciais e portas)
 docker compose up --build
 ```
 
@@ -863,7 +867,7 @@ Isso sobe:
 | `backend` | 3333         | API REST (seção 22)             |
 | `adminer` | 8080         | UI web para inspecionar o banco |
 
-No primeiro start, o backend aplica as migrations do Prisma e popula o banco com dados de demonstração automaticamente (usuário `maria.silva@email.com` / senha `senha123`, estabelecimentos e guias de primeiros socorros com o mesmo conteúdo do design). Detalhes em `backend/README.md`.
+No primeiro start, o Tomcat executa `schema.sql` e `seed.sql` automaticamente e popula o banco com dados de demonstração (usuário `maria.silva@email.com` / senha `senha123` e o Hospital São Lucas). Detalhes em `backend/README.md` e `backend/REST-CLIENT.md`.
 
 Com o backend no ar, rode o app:
 

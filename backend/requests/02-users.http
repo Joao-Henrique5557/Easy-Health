@@ -1,3 +1,5 @@
+@baseUrl = http://localhost:3333
+
 ### Easy Health API — Perfil do usuário (seção 21.2 do readme)
 # Todas exigem autenticação.
 
@@ -12,12 +14,10 @@ Content-Type: application/json
 }
 
 ### Meu perfil (usado pela Home, Emergência e Editar Perfil no app)
-GET {{baseUrl}}/api/users/me
-Authorization: Bearer {{login.response.body.$.accessToken}}
+GET {{baseUrl}}/api/users/me?accessToken={{login.response.body.$.accessToken}}
 
 ### Atualizar perfil (mesmos campos da tela Editar Perfil)
-PUT {{baseUrl}}/api/users/me
-Authorization: Bearer {{login.response.body.$.accessToken}}
+PUT {{baseUrl}}/api/users/me?accessToken={{login.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
@@ -30,8 +30,7 @@ Content-Type: application/json
 }
 
 ### Atualizar avatar
-PATCH {{baseUrl}}/api/users/me/avatar
-Authorization: Bearer {{login.response.body.$.accessToken}}
+PATCH {{baseUrl}}/api/users/me/avatar?accessToken={{login.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
@@ -39,8 +38,7 @@ Content-Type: application/json
 }
 
 ### Alterar senha
-PUT {{baseUrl}}/api/users/me/password
-Authorization: Bearer {{login.response.body.$.accessToken}}
+PUT {{baseUrl}}/api/users/me/password?accessToken={{login.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
@@ -49,8 +47,7 @@ Content-Type: application/json
 }
 
 ### Registrar token de push (usado por expo-notifications no app)
-POST {{baseUrl}}/api/users/me/push-token
-Authorization: Bearer {{login.response.body.$.accessToken}}
+POST {{baseUrl}}/api/users/me/push-token?accessToken={{login.response.body.$.accessToken}}
 Content-Type: application/json
 
 {
@@ -58,9 +55,7 @@ Content-Type: application/json
 }
 
 ### Preferências do app
-GET {{baseUrl}}/api/users/me/preferencias
-Authorization: Bearer {{login.response.body.$.accessToken}}
+GET {{baseUrl}}/api/users/me/preferencias?accessToken={{login.response.body.$.accessToken}}
 
 ### Excluir minha conta (cuidado — irreversível)
 # DELETE {{baseUrl}}/api/users/me
-# Authorization: Bearer {{login.response.body.$.accessToken}}
