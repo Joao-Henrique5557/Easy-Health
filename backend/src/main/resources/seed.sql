@@ -9,11 +9,20 @@ VALUES (
 )
 ON CONFLICT (email) DO UPDATE SET senha_hash = EXCLUDED.senha_hash;
 
-INSERT INTO establishments (id, nome, tipo, endereco, latitude, longitude, status)
+INSERT INTO establishments (
+    id, nome, tipo, "redeAtendimento", endereco, avaliacao, "avaliacoesCount", status,
+    "statusLabel", horario, telefone, especialidades, convenios, latitude, longitude
+)
 VALUES
-    ('hosp-sao-lucas', 'Hospital São Lucas', 'hospital', 'Av. Paulista, 1000 - São Paulo', -23.5505, -46.6333, 'aberto'),
-    ('upa-se', 'UPA Sé', 'upa', 'Praça da Sé, 100 - São Paulo', -23.5503, -46.6339, 'aberto'),
-    ('ubs-republica', 'UBS República', 'ubs', 'Rua do Arouche, 90 - São Paulo', -23.5431, -46.6425, 'aberto')
+    ('hosp-sao-lucas', 'Hospital São Lucas', 'hospital', 'privado', 'Av. Paulista, 1000 - São Paulo',
+        4.8, 320, 'aberto', 'Aberto agora', '24h', NULL,
+        ARRAY['Cardiologia', 'Clínica médica', 'Pediatria'], ARRAY[]::text[], -23.5505, -46.6333),
+    ('upa-se', 'UPA Sé', 'upa', 'publico', 'Praça da Sé, 100 - São Paulo',
+        4.8, 320, 'aberto', 'Aberto agora', '24h', NULL,
+        ARRAY[]::text[], ARRAY[]::text[], -23.5503, -46.6339),
+    ('ubs-republica', 'UBS República', 'ubs', 'publico', 'Rua do Arouche, 90 - São Paulo',
+        4.8, 320, 'aberto', 'Aberto agora', 'Segunda a sexta', NULL,
+        ARRAY[]::text[], ARRAY[]::text[], -23.5431, -46.6425)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO first_aid_guides (id, titulo, resumo, icon, passos, ordem)
