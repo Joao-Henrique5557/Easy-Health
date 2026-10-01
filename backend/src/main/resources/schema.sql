@@ -81,11 +81,54 @@ CREATE TABLE IF NOT EXISTS establishments (
     id text PRIMARY KEY,
     nome text NOT NULL,
     tipo text NOT NULL,
+    "redeAtendimento" text NOT NULL DEFAULT 'publico',
     endereco text NOT NULL,
+    avaliacao double precision NOT NULL DEFAULT 0,
+    "avaliacoesCount" integer,
+    status text NOT NULL DEFAULT 'aberto',
+    "statusLabel" text,
+    horario text NOT NULL DEFAULT '24h',
+    telefone text,
+    especialidades text[] NOT NULL DEFAULT '{}',
+    convenios text[] NOT NULL DEFAULT '{}',
     latitude double precision NOT NULL,
     longitude double precision NOT NULL,
-    status text NOT NULL DEFAULT 'aberto'
+    "createdAt" timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE establishments ADD COLUMN IF NOT EXISTS "redeAtendimento" text;
+ALTER TABLE establishments ADD COLUMN IF NOT EXISTS avaliacao double precision;
+ALTER TABLE establishments ADD COLUMN IF NOT EXISTS "avaliacoesCount" integer;
+ALTER TABLE establishments ADD COLUMN IF NOT EXISTS "statusLabel" text;
+ALTER TABLE establishments ADD COLUMN IF NOT EXISTS horario text;
+ALTER TABLE establishments ADD COLUMN IF NOT EXISTS telefone text;
+ALTER TABLE establishments ADD COLUMN IF NOT EXISTS especialidades text[];
+ALTER TABLE establishments ADD COLUMN IF NOT EXISTS convenios text[];
+ALTER TABLE establishments ADD COLUMN IF NOT EXISTS "createdAt" timestamptz;
+
+UPDATE establishments SET
+    "redeAtendimento" = COALESCE("redeAtendimento", 'publico'),
+    avaliacao = COALESCE(avaliacao, 0),
+    status = COALESCE(status, 'aberto'),
+    horario = COALESCE(horario, '24h'),
+    especialidades = COALESCE(especialidades, '{}'),
+    convenios = COALESCE(convenios, '{}'),
+    "createdAt" = COALESCE("createdAt", now());
+
+ALTER TABLE establishments ALTER COLUMN "redeAtendimento" SET DEFAULT 'publico';
+ALTER TABLE establishments ALTER COLUMN "redeAtendimento" SET NOT NULL;
+ALTER TABLE establishments ALTER COLUMN avaliacao SET DEFAULT 0;
+ALTER TABLE establishments ALTER COLUMN avaliacao SET NOT NULL;
+ALTER TABLE establishments ALTER COLUMN status SET DEFAULT 'aberto';
+ALTER TABLE establishments ALTER COLUMN status SET NOT NULL;
+ALTER TABLE establishments ALTER COLUMN horario SET DEFAULT '24h';
+ALTER TABLE establishments ALTER COLUMN horario SET NOT NULL;
+ALTER TABLE establishments ALTER COLUMN especialidades SET DEFAULT '{}';
+ALTER TABLE establishments ALTER COLUMN especialidades SET NOT NULL;
+ALTER TABLE establishments ALTER COLUMN convenios SET DEFAULT '{}';
+ALTER TABLE establishments ALTER COLUMN convenios SET NOT NULL;
+ALTER TABLE establishments ALTER COLUMN "createdAt" SET DEFAULT now();
+ALTER TABLE establishments ALTER COLUMN "createdAt" SET NOT NULL;
 
 CREATE TABLE IF NOT EXISTS first_aid_guides (
     id text PRIMARY KEY,

@@ -67,6 +67,30 @@ class LegacySchemaCompatibilityTest {
                 "SELECT icon FROM notifications WHERE id = 'legacy-notification'", String.class));
         assertEquals("Texto preservado", jdbc.queryForObject(
                 "SELECT descricao FROM notifications WHERE id = 'legacy-notification'", String.class));
+        assertEquals(4, jdbc.queryForObject("SELECT count(*) FROM establishments", Integer.class));
+        assertEquals("privado", jdbc.queryForObject(
+                "SELECT \"redeAtendimento\" FROM establishments WHERE id = 'hosp-sao-lucas'", String.class));
+        assertEquals("24h", jdbc.queryForObject(
+                "SELECT horario FROM establishments WHERE id = 'hosp-sao-lucas'", String.class));
+        assertEquals("Endereço mantido", jdbc.queryForObject(
+                "SELECT endereco FROM establishments WHERE id = 'legacy-establishment'", String.class));
+        assertEquals(4.2, jdbc.queryForObject(
+                "SELECT avaliacao FROM establishments WHERE id = 'legacy-establishment'", Double.class));
+        assertEquals("Unimed", jdbc.queryForObject(
+                "SELECT convenios[1] FROM establishments WHERE id = 'legacy-establishment'", String.class));
+
+        jdbc.update("""
+                INSERT INTO establishments (id, nome, tipo, endereco, latitude, longitude)
+                VALUES ('defaults-establishment', 'Estabelecimento Novo', 'clinica',
+                        'Endereço de teste', -23.5, -46.6)
+                """);
+        assertEquals("publico", jdbc.queryForObject(
+                "SELECT \"redeAtendimento\" FROM establishments WHERE id = 'defaults-establishment'",
+                String.class));
+        assertEquals("24h", jdbc.queryForObject(
+                "SELECT horario FROM establishments WHERE id = 'defaults-establishment'", String.class));
+        assertEquals(0.0, jdbc.queryForObject(
+                "SELECT avaliacao FROM establishments WHERE id = 'defaults-establishment'", Double.class));
 
         jdbc.update("""
                 INSERT INTO users (id, nome, email, senha_hash, email_verificado)
@@ -157,6 +181,31 @@ class LegacySchemaCompatibilityTest {
                     ordem integer NOT NULL
                 )
                 """);
+        jdbc.execute("CREATE TYPE \"TipoEstabelecimento\" AS ENUM "
+                + "('hospital', 'clinica', 'ubs', 'upa', 'laboratorio')");
+        jdbc.execute("CREATE TYPE \"RedeAtendimento\" AS ENUM ('publico', 'privado')");
+        jdbc.execute("CREATE TYPE \"StatusEstabelecimento\" AS ENUM "
+                + "('aberto', 'fechado', 'emergencia')");
+        jdbc.execute("""
+                CREATE TABLE establishments (
+                    id text PRIMARY KEY,
+                    nome text NOT NULL,
+                    tipo "TipoEstabelecimento" NOT NULL,
+                    "redeAtendimento" "RedeAtendimento" NOT NULL,
+                    endereco text NOT NULL,
+                    avaliacao double precision NOT NULL DEFAULT 0,
+                    "avaliacoesCount" integer,
+                    status "StatusEstabelecimento" NOT NULL DEFAULT 'aberto',
+                    "statusLabel" text,
+                    horario text NOT NULL,
+                    telefone text,
+                    especialidades text[] NOT NULL DEFAULT '{}',
+                    convenios text[] NOT NULL DEFAULT '{}',
+                    latitude double precision NOT NULL,
+                    longitude double precision NOT NULL,
+                    "createdAt" timestamptz NOT NULL DEFAULT now()
+                )
+                """);
         jdbc.update("""
                 INSERT INTO users (
                     id, nome, email, "senhaHash", telefone, "dataNascimento", "avatarUrl",
@@ -180,6 +229,18 @@ class LegacySchemaCompatibilityTest {
                 INSERT INTO notifications (id, "userId", icon, titulo, descricao, lida, "createdAt")
                 VALUES ('legacy-notification', 'legacy-user', 'Ícone legado', 'Título legado',
                         'Texto preservado', true, now())
+                """);
+        jdbc.update("""
+                INSERT INTO establishments (
+                    id, nome, tipo, "redeAtendimento", endereco, avaliacao, "avaliacoesCount",
+                    status, "statusLabel", horario, telefone, especialidades, convenios,
+                    latitude, longitude
+                ) VALUES (
+                    'legacy-establishment', 'Clínica Legada', 'clinica', 'privado',
+                    'Endereço mantido', 4.2, 27, 'aberto', 'Atendimento preservado',
+                    '08h-18h', '11999990000', ARRAY['Cardiologia'], ARRAY['Unimed'],
+                    -23.5, -46.6
+                )
                 """);
     }
 }
