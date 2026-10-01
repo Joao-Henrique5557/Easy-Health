@@ -11,7 +11,7 @@ cp .env.example .env
 docker compose up --build
 ```
 
-A API fica em `http://localhost:3333`; o Adminer fica em `http://localhost:8080`. O PostgreSQL executa `schema.sql` e `seed.sql` na primeira inicialização. Os scripts usam `CREATE ... IF NOT EXISTS` e `ON CONFLICT`, preservando os dados existentes no volume. A conta de demonstração é `maria.silva@email.com` / `senha123`.
+A API fica em `http://localhost:3333`; o Adminer fica em `http://localhost:8080`. A cada inicialização, `schema.sql` aplica alterações idempotentes e backfills para compatibilizar bancos legados antes dos índices; em seguida, a API instala a sincronização das colunas camelCase e executa `seed.sql`. Registros e volumes existentes são preservados. Para reconstruir e reiniciar somente a API sem remover dados, use `docker compose up -d --build backend` e acompanhe `docker compose logs -f backend`; não use `docker compose down -v`. A conta de demonstração é `maria.silva@email.com` / `senha123`.
 
 Confira `GET http://localhost:3333/health` para verificar a API e a conexão com o banco. A pasta `requests/` contém chamadas de exemplo para a extensão REST Client do VS Code.
 

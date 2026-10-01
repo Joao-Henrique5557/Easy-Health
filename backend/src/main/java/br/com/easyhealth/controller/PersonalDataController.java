@@ -136,11 +136,16 @@ public class PersonalDataController {
     @PostMapping("/api/favoritos")
     public List<Map<String, Object>> addFavorite(HttpServletRequest request,
             @RequestBody Map<String, Object> body) {
+        String userId = auth.requireUserId(request);
         String establishmentId = required(body, "estabelecimentoId");
         jdbc.update("""
-                INSERT INTO favorites (user_id, establishment_id) VALUES (?, ?)
-                ON CONFLICT (user_id, establishment_id) DO NOTHING
-                """, auth.requireUserId(request), establishmentId);
+                INSERT INTO favorites (user_id, establishment_id)
+                SELECT ?, ?
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM favorites WHERE user_id = ? AND establishment_id = ?
+                )
+                ON CONFLICT DO NOTHING
+                """, userId, establishmentId, userId, establishmentId);
         return favorites(request);
     }
 
