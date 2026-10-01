@@ -3,6 +3,13 @@ import { API_URL } from '@/config/env';
 import { tokenStorage } from './tokenStorage';
 let isRefreshing = false;
 let pendingQueue = [];
+const settlePendingRequests = (error, token) => {
+  pendingQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token);
+  });
+  pendingQueue = [];
+};
 export const api = axios.create({
   baseURL: API_URL,
   timeout: 10000
@@ -20,13 +27,19 @@ api.interceptors.request.use(async config => {
 // Response interceptor: trata 401 renovando o token
 api.interceptors.response.use(response => response, async error => {
   const original = error.config;
-  if (error.response?.status !== 401 || original?._retry) {
+  const isAuthRequest = original?.url?.includes('/api/auth/login')
+    || original?.url?.includes('/api/auth/register')
+    || original?.url?.includes('/api/auth/refresh-token');
+  if (error.response?.status !== 401 || !original || original._retry || isAuthRequest) {
     return Promise.reject(error);
   }
   if (isRefreshing) {
-    return new Promise(resolve => {
-      pendingQueue.push(() => resolve());
-    }).then(() => api(original));
+    return new Promise((resolve, reject) => {
+      pendingQueue.push({ resolve, reject });
+    }).then(token => {
+      original.headers.Authorization = `Bearer ${token}`;
+      return api(original);
+    });
   }
   isRefreshing = true;
   original._retry = true;
@@ -39,12 +52,12 @@ api.interceptors.response.use(response => response, async error => {
       refreshToken
     });
     await tokenStorage.setTokens(data.accessToken, data.refreshToken);
-    pendingQueue.forEach(fn => fn());
-    pendingQueue = [];
+    settlePendingRequests(null, data.accessToken);
+    original.headers.Authorization = `Bearer ${data.accessToken}`;
     return api(original);
   } catch (refreshError) {
     await tokenStorage.clear();
-    pendingQueue = [];
+    settlePendingRequests(refreshError);
     return Promise.reject(refreshError);
   } finally {
     isRefreshing = false;

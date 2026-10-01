@@ -55,9 +55,10 @@ src/
 
 ## Backend
 
-O backend já está implementado em `../backend` (Java 17 + Jakarta Servlets + Tomcat +
-PostgreSQL JDBC), cobrindo as rotas da seção 21 do readme do projeto, mais a rota do
-Assistente de IA:
+O backend em `../backend` usa **Spring Boot 3 + Java 17 + PostgreSQL** e sobe como JAR
+executável. Ele implementa as rotas usadas pelo aplicativo e persiste contas, sessões,
+agendamentos, favoritos e notificações. Consulte `../backend/README.md` para executar e
+entender os limites das integrações demonstrativas. A rota do assistente é:
 
 ```
 POST /api/assistant/message
@@ -65,9 +66,8 @@ body: { message: string, history: { role: "user"|"assistant", content: string }[
 resposta: { reply: string, screen: "home"|"primeiros_socorros"|"busca_atendimento"|"historico"|"perfil"|"emergencia"|null }
 ```
 
-No MVP Java, o assistente possui uma resposta demonstrativa segura. Uma integração
-real com um provedor de IA deve permanecer no servidor; a chave nunca deve ficar no
-aplicativo.
+O assistente usa regras locais demonstrativas e não chama um provedor de IA. Uma
+integração real deve permanecer no servidor; a chave nunca deve ficar no aplicativo.
 
 Todo service em `src/services/*.js` tem fallback automático para dados locais (mock) quando a
 chamada à API falha — então o app continua navegável mesmo com o backend fora do ar, mas o

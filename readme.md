@@ -263,7 +263,7 @@ Um assistente conversacional integrado ao aplicativo, com dois papéis principai
 
 ### Implementação
 
-O assistente é implementado como um componente no app (`AssistantFab` + `AssistantPanel`) que chama a rota `POST /api/assistant/message` do backend (seção 22.11), a qual por sua vez chama a API da Claude (Anthropic) do lado do servidor. A detecção de emergência roda **localmente no app**, por palavras-chave, antes de qualquer chamada de rede — garante que o usuário chegue à tela de emergência mesmo offline ou se a IA estiver indisponível.
+O assistente é implementado como um componente no app (`AssistantFab` + `AssistantPanel`) que chama `POST /api/assistant/message`. No MVP, a API responde com regras simples de navegação e segurança; a detecção de emergência também roda **localmente no app**, antes de qualquer chamada de rede.
 
 ---
 
@@ -431,19 +431,19 @@ Arquitetura implementada:
                │  HTTPS / JWT (Bearer Token)
                ▼
 ┌─────────────────────────────┐
-│      Backend (Java MVC)     │
-│ Jakarta Servlets + Tomcat  │
+│      Backend (Spring Boot)  │
+│        Java 17 + REST       │
 └───────┬───────────┬─────────┘
         │           │
         ▼           ▼
 ┌────────────┐ ┌───────────────┐
 │ PostgreSQL │ │ Serviços      │
-│ JDBC/DAOs  │ │ Externos      │
+│ JDBC       │ │ Externos      │
 └────────────┘ └───────┬───────┘
                        │
              ┌─────────┼─────────┐
              ▼         ▼         ▼
-       Nominatim   Anthropic   (futuro: CNES/
+       (futuro)    (futuro)    (futuro: CNES/
        (mapas)     (IA)         DATASUS, Places)
 ```
 
@@ -458,7 +458,7 @@ Stack efetivamente usada no projeto:
 ## Mobile
 
 - React Native + Expo
-- TypeScript
+- JavaScript
 - React Navigation (stack + bottom tabs)
 - axios (com interceptors de autenticação)
 - expo-location, expo-notifications, expo-secure-store, Linking (APIs nativas do Android/iOS)
@@ -466,9 +466,9 @@ Stack efetivamente usada no projeto:
 ## Backend
 
 - Java 17
-- Jakarta Servlets 6 + Tomcat 10
-- MVC didático: controllers/servlets, models, DAOs JDBC e utilitários
-- Gson (JSON), BCrypt (senhas) e tokens de sessão
+- Spring Boot 3 + Java 17
+- REST API organizada em controllers, services, repositories e DTOs
+- JSON via Jackson, BCrypt (senhas) e tokens opacos de sessão
 
 ## Banco de dados
 
@@ -483,9 +483,7 @@ Stack efetivamente usada no projeto:
 
 ## Serviços externos
 
-- **Nominatim (OpenStreetMap)** — geocodificação, sem exigir chave de API.
-- **Anthropic (Claude)** — Assistente de IA (seção 6.8), chamado só pelo backend.
-- Ainda não integrados (roadmap): CNES/DATASUS (rede pública real), Google Places (rede privada real), FCM/OneSignal (push notifications em produção).
+- **Ainda não integrados:** geocodificação externa, provedor de IA, CNES/DATASUS (rede pública real), Google Places (rede privada real), FCM/OneSignal (push notifications em produção).
 
 ---
 
@@ -583,7 +581,7 @@ O primeiro MVP deve concentrar-se nas funcionalidades essenciais da proposta.
 
 ## Fase 5 — Integrações
 
-- [x] APIs externas (Nominatim para geocodificação; Anthropic para o Assistente de IA).
+- [ ] APIs externas (geocodificação e assistente de IA).
 - [ ] Estabelecimentos privados (Google Places real).
 - [ ] Serviços públicos (CNES/DATASUS real).
 - [ ] Sistemas oficiais, quando tecnicamente e legalmente possível (RNDS).
@@ -593,7 +591,7 @@ O primeiro MVP deve concentrar-se nas funcionalidades essenciais da proposta.
 - [x] Navegação guiada por linguagem natural.
 - [x] Roteamento de intenções para telas do app.
 - [x] Detecção de sinais de emergência (local, no app, antes de qualquer chamada de rede).
-- [x] Backend chamando a API da Claude (Anthropic) do lado do servidor.
+- [ ] Backend chamando um provedor de IA do lado do servidor.
 - [ ] Base de conhecimento (RAG) sobre funcionalidades do app — hoje o conhecimento vem só do prompt de sistema.
 
 ---
@@ -715,10 +713,10 @@ Dessa forma, o Easy Health busca oferecer **mais praticidade, rapidez, organiza�
 
 # 21. Status
 
-**Status:** MVP implementado (frontend + backend + infraestrutura Docker) — validação e testes em andamento.
+**Status:** MVP funcional (frontend + backend + infraestrutura Docker); integrações externas e recursos futuros continuam pendentes.
 
 - Frontend (React Native/Expo): todas as telas do design implementadas e conectadas ao backend, com fallback local para conteúdo de segurança (primeiros socorros) e dados de demonstração.
-- Backend (Java 17/Jakarta Servlets/PostgreSQL JDBC): API MVC com DAOs e rotas compatíveis com a seção 22; recursos externos de IA, mapas e agenda permanecem mockados no MVP.
+- Backend (Java 17/Spring Boot/PostgreSQL): API REST com autenticação e persistência para contas, agendamentos, favoritos e notificações; integrações externas de IA, geocodificação e agenda real ainda não estão configuradas.
 - Infraestrutura: `docker-compose.yml` sobe banco + API + UI de administração do banco com um único comando (ver seção 23).
 - Pendências: login social (OAuth real), upload de arquivos (foto de perfil, documentos médicos), geração de PDF de receita, integração com sistemas oficiais de saúde (RNDS) — ver roadmap (seção 16) e `backend/README.md`/`frontend/README.md` para o detalhamento técnico de cada pendência.
 
@@ -728,7 +726,7 @@ Dessa forma, o Easy Health busca oferecer **mais praticidade, rapidez, organiza�
 
 Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home, primeiros socorros, busca de atendimento, modo emergência, perfil, agendamento, histórico de saúde, notificações e favoritos), o backend do Easy Health expõe as rotas REST listadas abaixo. Todas as rotas (exceto autenticação, conteúdo público e modo de emergência) exigem um token de acesso válido (Bearer Token / JWT).
 
-> **Status:** implementado em `backend/` (Java + Jakarta Servlets + PostgreSQL). A organização didática está em `backend/src/main/java/model`, `dao`, `controller` e `util`.
+> **Status:** implementado em `backend/` (Spring Boot + Java + PostgreSQL). A organização didática está em `backend/src/main/java/br/com/easyhealth`.
 
 ## 22.1 Autenticação (login, cadastro, recuperação de senha)
 
@@ -740,7 +738,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | POST   | `/api/auth/refresh-token`   | Gera um novo token a partir do refresh token |
 | POST   | `/api/auth/forgot-password` | Envia código/link de recuperação de senha    |
 | POST   | `/api/auth/reset-password`  | Redefine a senha usando o código enviado     |
-| POST   | `/api/auth/verify-email`    | Confirma o e-mail cadastrado                 |
+| POST   | `/api/auth/verify-email`    | Retorna 503 até configurar envio de e-mail   |
 
 ## 22.2 Perfil do usuário
 
@@ -837,13 +835,13 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 
 ## 22.11 Assistente de IA
 
-Rota adicional, não prevista no mapeamento original das telas (criada para viabilizar a funcionalidade descrita na seção 6.8). Diferente das outras, o corpo da resposta não é o dado bruto do banco — é gerado por um modelo de IA (Claude, da Anthropic) com um prompt de sistema que conhece as telas do app.
+Rota adicional para navegação guiada. No MVP, intenção e resposta são tratadas com regras simples, sem provedor de IA.
 
 | Método | Rota                     | Descrição                                                           |
 | ------ | ------------------------ | ------------------------------------------------------------------- |
 | POST   | `/api/assistant/message` | Envia uma mensagem do usuário e recebe uma resposta + tela sugerida |
 
-A rota possui uma resposta demonstrativa no backend Java. Uma integração real com a Anthropic deve ser adicionada posteriormente, mantendo a chave somente no servidor.
+A resposta é demonstrativa. Uma integração real com um provedor deve ser adicionada posteriormente, mantendo a chave somente no servidor.
 
 > Observação: os nomes e a organização exata das rotas (versionamento como `/api/v1/...`, nomenclatura em inglês, etc.) poderão ser ajustados conforme a evolução do backend. Esta lista mapeia, a partir das telas do protótipo, todos os recursos que a API disponibiliza para o MVP e para as fases futuras do roadmap.
 
@@ -867,7 +865,7 @@ Isso sobe:
 | `backend` | 3333         | API REST (seção 22)             |
 | `adminer` | 8080         | UI web para inspecionar o banco |
 
-No primeiro start, o Tomcat executa `schema.sql` e `seed.sql` automaticamente e popula o banco com dados de demonstração (usuário `maria.silva@email.com` / senha `senha123` e o Hospital São Lucas). Detalhes em `backend/README.md` e `backend/REST-CLIENT.md`.
+No primeiro start, o Spring Boot executa `schema.sql` e `seed.sql` e popula o banco com dados de demonstração (usuário `maria.silva@email.com` / senha `senha123` e estabelecimentos de exemplo). Detalhes em `backend/README.md` e `backend/REST-CLIENT.md`.
 
 Com o backend no ar, rode o app:
 

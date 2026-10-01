@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { colors } from "@/theme/colors";
@@ -18,7 +18,12 @@ export function FavoritesScreen() {
   const navigation = useNavigation();
   const [favorites, setFavorites] = useState([]);
   const load = useCallback(() => {
-    favoritesService.list().then(setFavorites);
+    favoritesService.list().then(setFavorites).catch(error => {
+      setFavorites([]);
+      if (error.response?.status !== 401) {
+        console.error("Não foi possível carregar os favoritos.", error);
+      }
+    });
   }, []);
 
   // Recarrega sempre que a tela ganha foco, para refletir favoritos
@@ -27,8 +32,12 @@ export function FavoritesScreen() {
     load();
   }, [load]));
   async function handleRemove(id) {
-    await favoritesService.remove(id);
-    load();
+    try {
+      await favoritesService.remove(id);
+      load();
+    } catch (error) {
+      Alert.alert("Não foi possível remover o favorito", "Tente novamente em instantes.");
+    }
   }
   return <ScrollView style={{
     flex: 1,
@@ -73,7 +82,7 @@ export function FavoritesScreen() {
               fontSize: 11.5,
               color: colors.inkSoft
             }}>
-                    {item.distanciaKm.toFixed(1)} km
+                    {Number.isFinite(item.distanciaKm) && `${item.distanciaKm.toFixed(1)} km`}
                   </Text>
                 </View>
                 <Pressable onPress={() => handleRemove(item.id)} hitSlop={8}>

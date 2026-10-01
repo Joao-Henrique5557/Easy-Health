@@ -1,12 +1,11 @@
 import { api } from "./api";
 /**
  * IMPORTANTE: este serviço NUNCA chama api.anthropic.com diretamente.
- * A chave da API da Claude fica só no backend (rota nova, ainda não
- * listada no readme: POST /api/assistant/message). Chamar a API de IA
- * direto do celular exigiria embutir a chave no app — qualquer pessoa
- * poderia extraí-la do APK e usá-la às custas de vocês.
+ * A rota do backend (POST /api/assistant/message) responde com regras
+ * demonstrativas e não chama um provedor de IA. Uma futura chave deve ficar
+ * apenas no servidor, nunca embutida no aplicativo.
  *
- * Contrato sugerido da rota no backend:
+ * Contrato da rota no backend:
  *   POST /api/assistant/message
  *   body: { message: string, history: AssistantMessage[] }
  *   resposta: { reply: string, screen: AssistantScreen }

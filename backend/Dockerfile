@@ -2,8 +2,11 @@ FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
-RUN mvn -q -DskipTests package
-FROM tomcat:10.1-jdk17-temurin
-RUN rm -rf /usr/local/tomcat/webapps/ROOT
-COPY --from=build /app/target/easy-health.war /usr/local/tomcat/webapps/ROOT.war
+RUN mvn -B -DskipTests package
+
+FROM eclipse-temurin:17-jre-alpine
+RUN apk add --no-cache curl
+WORKDIR /app
+COPY --from=build /app/target/easy-health.jar app.jar
 EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]

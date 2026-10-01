@@ -19,17 +19,34 @@ export function EstablishmentDetailScreen() {
   useEffect(() => {
     establishmentsService.getById(route.params.id).then(data => {
       setItem(data ?? null);
-      if (data) setIsFavorite(favoritesService.isFavorite(data.id));
+      if (data) {
+        favoritesService.list().then(() => {
+          setIsFavorite(favoritesService.isFavorite(data.id));
+        }).catch(error => {
+          if (error.response?.status !== 401) {
+            console.error("Não foi possível carregar os favoritos.", error);
+          }
+        });
+      }
     });
   }, [route.params.id]);
   async function toggleFavorite() {
     if (!item) return;
-    if (isFavorite) {
-      await favoritesService.remove(item.id);
-    } else {
-      await favoritesService.add(item.id);
+    try {
+      if (isFavorite) {
+        await favoritesService.remove(item.id);
+      } else {
+        await favoritesService.add(item.id);
+      }
+      setIsFavorite(v => !v);
+    } catch (error) {
+      Alert.alert(
+        error.response?.status === 401 ? "Entre na sua conta" : "Não foi possível atualizar os favoritos",
+        error.response?.status === 401
+          ? "Faça login para salvar seus estabelecimentos favoritos."
+          : "Tente novamente em instantes."
+      );
     }
-    setIsFavorite(v => !v);
   }
   async function handleRoute() {
     if (!item) return;

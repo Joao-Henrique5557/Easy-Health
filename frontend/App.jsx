@@ -7,6 +7,7 @@ import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_7
 import { colors } from "@/theme/colors";
 import { RootNavigator } from "@/navigation/RootNavigator";
 import { authService } from "@/services/authService";
+import { tokenStorage } from "@/services/tokenStorage";
 import { notificationService } from "@/services/notificationService";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ToastProvider } from "@/components/Toast";
@@ -26,10 +27,22 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isGuest, setIsGuest] = useState(false);
   useEffect(() => {
-    authService.isAuthenticated().then(value => {
-      setIsAuthenticated(value);
-      setCheckingSession(false);
-    });
+    let mounted = true;
+    async function restoreSession() {
+      try {
+        await tokenStorage.init();
+        const value = await authService.isAuthenticated();
+        if (mounted) setIsAuthenticated(value);
+      } catch (error) {
+        console.error("Não foi possível restaurar a sessão.", error);
+      } finally {
+        if (mounted) setCheckingSession(false);
+      }
+    }
+    restoreSession();
+    return () => {
+      mounted = false;
+    };
   }, []);
   useEffect(() => {
     if (isAuthenticated) {

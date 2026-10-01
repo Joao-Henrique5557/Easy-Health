@@ -17,50 +17,32 @@ export const tokenStorage = {
     useSecureStore = await testSecureStore();
   },
   async setTokens(accessToken, refreshToken) {
-    try {
-      if (useSecureStore) {
-        await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
-        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
-      } else {
-        await AsyncStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-        await AsyncStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-      }
-    } catch (e) {
-      console.error('Failed to store tokens:', e);
+    if (useSecureStore) {
+      await SecureStore.setItemAsync(ACCESS_TOKEN_KEY, accessToken);
+      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    } else {
+      await AsyncStorage.multiSet([
+        [ACCESS_TOKEN_KEY, accessToken],
+        [REFRESH_TOKEN_KEY, refreshToken]
+      ]);
     }
   },
   async getAccessToken() {
-    try {
-      if (useSecureStore) {
-        return await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
-      } else {
-        return await AsyncStorage.getItem(ACCESS_TOKEN_KEY);
-      }
-    } catch {
-      return null;
-    }
+    return useSecureStore
+      ? SecureStore.getItemAsync(ACCESS_TOKEN_KEY)
+      : AsyncStorage.getItem(ACCESS_TOKEN_KEY);
   },
   async getRefreshToken() {
-    try {
-      if (useSecureStore) {
-        return await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
-      } else {
-        return await AsyncStorage.getItem(REFRESH_TOKEN_KEY);
-      }
-    } catch {
-      return null;
-    }
+    return useSecureStore
+      ? SecureStore.getItemAsync(REFRESH_TOKEN_KEY)
+      : AsyncStorage.getItem(REFRESH_TOKEN_KEY);
   },
   async clear() {
-    try {
-      if (useSecureStore) {
-        await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
-        await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-      } else {
-        await AsyncStorage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
-      }
-    } catch (e) {
-      console.error('Failed to clear tokens:', e);
+    if (useSecureStore) {
+      await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
+      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    } else {
+      await AsyncStorage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
     }
   }
 };

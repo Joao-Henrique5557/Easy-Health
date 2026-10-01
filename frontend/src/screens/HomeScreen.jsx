@@ -20,7 +20,12 @@ export function HomeScreen() {
   const [searchText, setSearchText] = useState("");
   useEffect(() => {
     profileService.getMe().then(setProfile);
-    bookingService.listUpcoming().then(setBookings);
+    bookingService.listUpcoming().then(setBookings).catch(error => {
+      setBookings([]);
+      if (error.response?.status !== 401) {
+        console.error("Não foi possível carregar os agendamentos.", error);
+      }
+    });
   }, []);
   function handleAssistantNavigate(screen) {
     setChatOpen(false);
