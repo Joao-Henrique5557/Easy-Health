@@ -865,6 +865,8 @@ Isso sobe:
 | `backend` | 3333         | API REST (seção 22)             |
 | `adminer` | 8080         | UI web para inspecionar o banco |
 
+Dentro do Compose, a API acessa o MySQL pelo nome DNS interno `db`. Esse nome não resolve fora da rede do Compose; para executar o backend diretamente na máquina, use `localhost` na `DB_URL` (veja `backend/.env.example`). Se ocorrer `UnknownHostException: db`, confira `docker compose ps` e `docker compose exec backend getent hosts db`.
+
 No primeiro start, o Spring Boot executa `schema.sql` e `seed.sql` e popula o banco com dados de demonstração (usuário `maria.silva@email.com` / senha `senha123` e estabelecimentos de exemplo). O volume MySQL é separado do volume PostgreSQL anterior; a troca de mecanismo não migra automaticamente dados de um banco PostgreSQL existente. Detalhes em `backend/README.md` e `backend/REST-CLIENT.md`.
 
 Com o backend no ar, rode o app:

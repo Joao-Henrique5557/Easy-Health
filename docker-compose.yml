@@ -4,6 +4,8 @@ services:
   db:
     image: mysql:8.4
     restart: unless-stopped
+    networks:
+      - app
     environment:
       MYSQL_USER: ${MYSQL_USER:-easyhealth}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the root .env file}
@@ -24,6 +26,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
+    networks:
+      - app
     depends_on:
       db:
         condition: service_healthy
@@ -48,6 +52,8 @@ services:
   adminer:
     image: adminer:4
     restart: unless-stopped
+    networks:
+      - app
     depends_on:
       - db
     ports:
@@ -55,3 +61,6 @@ services:
 
 volumes:
   easy-health-mysql-data:
+
+networks:
+  app:

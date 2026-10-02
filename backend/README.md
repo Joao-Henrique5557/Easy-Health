@@ -22,6 +22,18 @@ Confira `GET http://localhost:3333/health` para verificar a API e a conexão com
 
 Para reconstruir e reiniciar somente a API sem remover dados, use `docker compose up -d --build backend` e acompanhe `docker compose logs -f backend`; não use `docker compose down -v`.
 
+### Diagnóstico de conexão no Docker
+
+`db` é o nome DNS interno do serviço MySQL e só resolve para processos conectados à rede do Compose. Inicie a API como serviço Compose, pela raiz do repositório; não use `mvn spring-boot:run` ou `docker run` isolado com uma URL que contenha `db`. Para executar a API diretamente na máquina, use a URL `localhost` do `backend/.env.example`. O Compose configura a URL interna `jdbc:mysql://db:3306/...` para o container da API e aguarda o healthcheck do MySQL antes de iniciá-lo.
+
+Se aparecer `UnknownHostException: db`, confira se os serviços estão na mesma rede e se o backend está usando a URL interna correta:
+
+```bash
+docker compose ps
+docker compose exec backend getent hosts db
+docker compose logs backend
+```
+
 ## Executar localmente
 
 1. Instale MySQL 8.4 e crie o banco `easyhealth` e um usuário com acesso a ele.
