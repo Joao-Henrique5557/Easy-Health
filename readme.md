@@ -437,7 +437,7 @@ Arquitetura implementada:
         │           │
         ▼           ▼
 ┌────────────┐ ┌───────────────┐
-│ PostgreSQL │ │ Serviços      │
+│   MySQL    │ │ Serviços      │
 │ JDBC       │ │ Externos      │
 └────────────┘ └───────┬───────┘
                        │
@@ -472,7 +472,7 @@ Stack efetivamente usada no projeto:
 
 ## Banco de dados
 
-- PostgreSQL
+- MySQL 8.4
 
 ## Infraestrutura
 
@@ -716,7 +716,7 @@ Dessa forma, o Easy Health busca oferecer **mais praticidade, rapidez, organiza�
 **Status:** MVP funcional (frontend + backend + infraestrutura Docker); integrações externas e recursos futuros continuam pendentes.
 
 - Frontend (React Native/Expo): todas as telas do design implementadas e conectadas ao backend, com fallback local para conteúdo de segurança (primeiros socorros) e dados de demonstração.
-- Backend (Java 17/Spring Boot/PostgreSQL): API REST com autenticação e persistência para contas, agendamentos, favoritos e notificações; integrações externas de IA, geocodificação e agenda real ainda não estão configuradas.
+- Backend (Java 17/Spring Boot/MySQL): API REST com autenticação e persistência para contas, agendamentos, favoritos e notificações; integrações externas de IA, geocodificação e agenda real ainda não estão configuradas.
 - Infraestrutura: `docker-compose.yml` sobe banco + API + UI de administração do banco com um único comando (ver seção 23).
 - Pendências: login social (OAuth real), upload de arquivos (foto de perfil, documentos médicos), geração de PDF de receita, integração com sistemas oficiais de saúde (RNDS) — ver roadmap (seção 16) e `backend/README.md`/`frontend/README.md` para o detalhamento técnico de cada pendência.
 
@@ -726,7 +726,7 @@ Dessa forma, o Easy Health busca oferecer **mais praticidade, rapidez, organiza�
 
 Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home, primeiros socorros, busca de atendimento, modo emergência, perfil, agendamento, histórico de saúde, notificações e favoritos), o backend do Easy Health expõe as rotas REST listadas abaixo. Todas as rotas (exceto autenticação, conteúdo público e modo de emergência) exigem um token de acesso válido (Bearer Token / JWT).
 
-> **Status:** implementado em `backend/` (Spring Boot + Java + PostgreSQL). A organização didática está em `backend/src/main/java/br/com/easyhealth`.
+> **Status:** implementado em `backend/` (Spring Boot + Java + MySQL). A organização didática está em `backend/src/main/java/br/com/easyhealth`.
 
 ## 22.1 Autenticação (login, cadastro, recuperação de senha)
 
@@ -770,7 +770,7 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 | GET    | `/api/estabelecimentos/:id`                      | Retorna o detalhe de um estabelecimento                                             |
 | GET    | `/api/estabelecimentos/:id/especialidades`       | Lista especialidades oferecidas pelo estabelecimento                                |
 | GET    | `/api/estabelecimentos/:id/precos`               | Lista preços de consultas/serviços do estabelecimento                               |
-| GET    | `/api/estabelecimentos/:id/horarios-disponiveis` | Lista horários disponíveis para agendamento                                         |
+| GET    | `/api/estabelecimentos/:id/horarios-disponiveis?data=AAAA-MM-DD` | Lista horários futuros ainda livres na data informada                |
 | GET    | `/api/especialidades`                            | Lista geral de especialidades médicas (para filtros)                                |
 
 ## 22.5 Modo de emergência
@@ -785,8 +785,8 @@ Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home
 
 | Método | Rota                              | Descrição                                       |
 | ------ | --------------------------------- | ----------------------------------------------- |
-| GET    | `/api/agendamentos`               | Lista os agendamentos do usuário logado         |
-| POST   | `/api/agendamentos`               | Cria um novo agendamento                        |
+| GET    | `/api/agendamentos`               | Lista agendamentos futuros ativos do usuário logado |
+| POST   | `/api/agendamentos`               | Cria um agendamento; retorna 409 se o horário não estiver mais disponível |
 | GET    | `/api/agendamentos/:id`           | Retorna o detalhe/confirmação de um agendamento |
 | PUT    | `/api/agendamentos/:id`           | Reagenda (altera data/horário) um agendamento   |
 | DELETE | `/api/agendamentos/:id`           | Cancela um agendamento                          |
@@ -852,8 +852,8 @@ A resposta é demonstrativa. Uma integração real com um provedor deve ser adic
 O jeito mais rápido de rodar o Easy Health inteiro (banco + backend) é via Docker Compose, na raiz do repositório:
 
 ```bash
-cp .env.example .env
-# edite o .env se quiser (principalmente credenciais e portas)
+cp -n .env.example .env
+# substitua MYSQL_PASSWORD e MYSQL_ROOT_PASSWORD por senhas locais fortes
 docker compose up --build
 ```
 
@@ -861,11 +861,11 @@ Isso sobe:
 
 | Serviço   | Porta padrão | O que é                         |
 | --------- | ------------ | ------------------------------- |
-| `db`      | 5432         | PostgreSQL                      |
+| `db`      | 3306         | MySQL 8.4                       |
 | `backend` | 3333         | API REST (seção 22)             |
 | `adminer` | 8080         | UI web para inspecionar o banco |
 
-No primeiro start, o Spring Boot executa `schema.sql` e `seed.sql` e popula o banco com dados de demonstração (usuário `maria.silva@email.com` / senha `senha123` e estabelecimentos de exemplo). Detalhes em `backend/README.md` e `backend/REST-CLIENT.md`.
+No primeiro start, o Spring Boot executa `schema.sql` e `seed.sql` e popula o banco com dados de demonstração (usuário `maria.silva@email.com` / senha `senha123` e estabelecimentos de exemplo). O volume MySQL é separado do volume PostgreSQL anterior; a troca de mecanismo não migra automaticamente dados de um banco PostgreSQL existente. Detalhes em `backend/README.md` e `backend/REST-CLIENT.md`.
 
 Com o backend no ar, rode o app:
 

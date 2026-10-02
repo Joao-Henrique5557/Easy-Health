@@ -13,9 +13,7 @@ export function BookingConfirmationScreen() {
   const route = useRoute();
   const [booking, setBooking] = useState(null);
   useEffect(() => {
-    bookingService.listUpcoming().then(list => {
-      setBooking(list.find(b => b.id === route.params.bookingId) ?? list[0] ?? null);
-    });
+    bookingService.getById(route.params.bookingId).then(setBooking);
   }, [route.params.bookingId]);
   function handleAddToCalendar() {
     // Integração real usaria expo-calendar (API nativa do Android/iOS) com

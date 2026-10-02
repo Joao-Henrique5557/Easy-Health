@@ -7,5 +7,9 @@ export const bookingService = {
   async listUpcoming() {
     const { data } = await api.get("/api/agendamentos");
     return data;
+  },
+  async getById(id) {
+    const { data } = await api.get(`/api/agendamentos/${id}`);
+    return data;
   }
 };

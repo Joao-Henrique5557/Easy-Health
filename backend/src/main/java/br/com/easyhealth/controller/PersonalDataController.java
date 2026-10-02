@@ -4,15 +4,18 @@ import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import br.com.easyhealth.service.AuthService;
+import br.com.easyhealth.service.AppointmentAvailability;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,19 +39,24 @@ public class PersonalDataController {
     @GetMapping("/api/agendamentos")
     public List<Map<String, Object>> bookings(HttpServletRequest request) {
         String userId = auth.requireUserId(request);
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo"));
+        LocalTime now = LocalTime.now(java.time.ZoneId.of("America/Sao_Paulo"));
         return jdbc.query("""
                 SELECT a.id, a.user_id, a.establishment_id, e.nome AS establishment_name,
                     a.especialidade, a.data, a.horario, a.status
                 FROM appointments a JOIN establishments e ON e.id = a.establishment_id
-                WHERE a.user_id = ? AND a.status NOT IN ('cancelado')
+                WHERE a.user_id = ? AND a.status IN ('agendado', 'confirmado')
+                    AND (a.data > ? OR (a.data = ? AND a.horario >= ?))
                 ORDER BY a.data, a.horario
                 """, (row, index) -> bookingView(
                         row.getString("id"), row.getString("user_id"), row.getString("establishment_id"),
                         row.getString("establishment_name"), row.getString("especialidade"),
-                        row.getDate("data"), row.getTime("horario"), row.getString("status")), userId);
+                        row.getDate("data"), row.getTime("horario"), row.getString("status")),
+                userId, Date.valueOf(today), Date.valueOf(today), Time.valueOf(now.withNano(0)));
     }
 
     @PostMapping("/api/agendamentos")
+    @Transactional
     public Map<String, Object> createBooking(HttpServletRequest request,
             @RequestBody Map<String, Object> body) {
         String userId = auth.requireUserId(request);
@@ -56,6 +64,25 @@ public class PersonalDataController {
         String specialty = required(body, "especialidade");
         LocalDate date = parseDate(required(body, "data"));
         LocalTime time = parseTime(required(body, "horario"));
+        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo"));
+        if (date.isBefore(today)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível agendar em uma data passada.");
+        }
+        String slot = time.format(DateTimeFormatter.ofPattern("HH:mm"));
+        if (time.getSecond() != 0 || time.getNano() != 0 || !AppointmentAvailability.isSlot(slot)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horário indisponível.");
+        }
+        try {
+            jdbc.queryForObject("SELECT id FROM establishments WHERE id = ? FOR UPDATE", String.class,
+                    establishmentId);
+        } catch (org.springframework.dao.EmptyResultDataAccessException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Estabelecimento não encontrado ou agendamento inválido.");
+        }
+        if (!AppointmentAvailability.forDate(jdbc, establishmentId, date, true).contains(slot)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Este horário não está mais disponível. Escolha outro horário.");
+        }
         String id = UUID.randomUUID().toString();
         try {
             jdbc.update("""
@@ -115,7 +142,8 @@ public class PersonalDataController {
     public List<Map<String, Object>> favorites(HttpServletRequest request) {
         String userId = auth.requireUserId(request);
         return jdbc.query("""
-                SELECT e.id, e.nome, e.tipo, e.endereco, e.latitude, e.longitude, e.status
+                SELECT e.id, e.nome, e.tipo, e.rede_atendimento, e.endereco,
+                    e.latitude, e.longitude, e.status
                 FROM favorites f JOIN establishments e ON e.id = f.establishment_id
                 WHERE f.user_id = ? ORDER BY f.created_at DESC
                 """, (row, index) -> {
@@ -123,7 +151,7 @@ public class PersonalDataController {
             place.put("id", row.getString("id"));
             place.put("nome", row.getString("nome"));
             place.put("tipo", row.getString("tipo"));
-            place.put("redeAtendimento", row.getString("tipo").equals("hospital") ? "privado" : "publico");
+            place.put("redeAtendimento", row.getString("rede_atendimento"));
             place.put("endereco", row.getString("endereco"));
             place.put("latitude", row.getDouble("latitude"));
             place.put("longitude", row.getDouble("longitude"));
@@ -140,12 +168,9 @@ public class PersonalDataController {
         String establishmentId = required(body, "estabelecimentoId");
         jdbc.update("""
                 INSERT INTO favorites (user_id, establishment_id)
-                SELECT ?, ?
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM favorites WHERE user_id = ? AND establishment_id = ?
-                )
-                ON CONFLICT DO NOTHING
-                """, userId, establishmentId, userId, establishmentId);
+                VALUES (?, ?) AS incoming
+                ON DUPLICATE KEY UPDATE establishment_id = incoming.establishment_id
+                """, userId, establishmentId);
         return favorites(request);
     }
 
@@ -170,11 +195,12 @@ public class PersonalDataController {
                     "Seu perfil está pronto.");
         }
         return jdbc.query("""
-                SELECT id, titulo, descricao, lida, created_at
+                SELECT id, icon, titulo, descricao, lida, created_at
                 FROM notifications WHERE user_id = ? ORDER BY created_at DESC
                 """, (row, index) -> {
             Map<String, Object> notification = new LinkedHashMap<>();
             notification.put("id", row.getString("id"));
+            notification.put("icon", row.getString("icon"));
             notification.put("titulo", row.getString("titulo"));
             notification.put("descricao", row.getString("descricao"));
             notification.put("lida", row.getBoolean("lida"));
@@ -261,6 +287,7 @@ public class PersonalDataController {
         booking.put("establishmentId", establishmentId);
         booking.put("establishmentNome", establishmentName);
         booking.put("especialidade", specialty);
+        booking.put("local", establishmentName);
         booking.put("data", date.toString());
         booking.put("horario", time.toLocalTime().toString().substring(0, 5));
         booking.put("status", status);

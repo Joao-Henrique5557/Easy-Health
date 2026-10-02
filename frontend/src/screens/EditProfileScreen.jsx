@@ -14,7 +14,8 @@ function Field({
   label,
   value,
   onChangeText,
-  keyboardType
+  keyboardType,
+  editable = true
 }) {
   return <View style={{
     marginBottom: 14
@@ -25,7 +26,7 @@ function Field({
       color: colors.ink,
       marginBottom: 6
     }}>{label}</Text>
-      <TextInput value={value} onChangeText={onChangeText} keyboardType={keyboardType} style={inputStyle} />
+      <TextInput value={value} onChangeText={onChangeText} keyboardType={keyboardType} editable={editable} style={inputStyle} />
     </View>;
 }
 export function EditProfileScreen() {
@@ -117,10 +118,7 @@ export function EditProfileScreen() {
           ...form,
           nome: v
         })} />
-            <Field label="E-mail" value={form.email} onChangeText={v => setForm({
-          ...form,
-          email: v
-        })} keyboardType="email-address" />
+            <Field label="E-mail" value={form.email} editable={false} keyboardType="email-address" />
             <Field label="Telefone" value={form.telefone} onChangeText={v => setForm({
           ...form,
           telefone: v

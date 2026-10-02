@@ -1,7 +1,6 @@
 /**
  * Extrai a mensagem de erro real que o backend mandou (ver
- * o handler de erros do backend — sempre responde com
- * { message: "..." }, e erros de validação Zod incluem também "issues").
+ * o handler de erros do backend — responde com { error: "..." }.
  *
  * Bug que isso corrige: as telas de auth/perfil estavam usando um
  * catch { Alert.alert("mensagem genérica fixa") } — então quando o
@@ -35,8 +34,8 @@ export function getApiErrorMessage(error, fallback) {
   if (data?.issues?.length) {
     return data.issues.map(i => i.message).join("\n");
   }
-  if (data?.message) {
-    return data.message;
+  if (data?.message || data?.error) {
+    return data.message || data.error;
   }
   if (status && status >= 500) {
     return "O servidor encontrou um erro interno. Tente novamente em instantes.";

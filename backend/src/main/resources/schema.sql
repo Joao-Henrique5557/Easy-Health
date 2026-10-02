@@ -1,204 +1,102 @@
 CREATE TABLE IF NOT EXISTS users (
     id varchar(36) PRIMARY KEY,
     nome text NOT NULL,
-    email text UNIQUE NOT NULL,
+    email varchar(254) NOT NULL UNIQUE,
     senha_hash text NOT NULL,
-    telefone text,
+    telefone varchar(64),
     data_nascimento date,
     avatar_url text,
-    tipo_sanguineo text,
+    tipo_sanguineo varchar(8),
     alergias text,
     medicamentos_em_uso text,
     plano_de_saude text,
     email_verificado boolean NOT NULL DEFAULT false,
     contato_emergencia_nome text,
-    contato_emergencia_telefone text,
+    contato_emergencia_telefone varchar(64),
     contato_emergencia_parentesco text,
     push_token text,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    updated_at timestamptz NOT NULL DEFAULT now()
-);
-
-ALTER TABLE users ADD COLUMN IF NOT EXISTS senha_hash text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS telefone text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS data_nascimento date;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS tipo_sanguineo text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS alergias text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS medicamentos_em_uso text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS plano_de_saude text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verificado boolean;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS contato_emergencia_nome text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS contato_emergencia_telefone text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS contato_emergencia_parentesco text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS push_token text;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at timestamptz;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at timestamptz;
-
-UPDATE users SET
-    senha_hash = COALESCE(to_jsonb(users)->>'senhaHash', senha_hash),
-    telefone = COALESCE(to_jsonb(users)->>'telefone', telefone),
-    data_nascimento = COALESCE(NULLIF(to_jsonb(users)->>'dataNascimento', '')::date, data_nascimento),
-    avatar_url = COALESCE(to_jsonb(users)->>'avatarUrl', avatar_url),
-    tipo_sanguineo = COALESCE(to_jsonb(users)->>'tipoSanguineo', tipo_sanguineo),
-    alergias = COALESCE(to_jsonb(users)->>'alergias', alergias),
-    medicamentos_em_uso = COALESCE(to_jsonb(users)->>'medicamentosEmUso', medicamentos_em_uso),
-    plano_de_saude = COALESCE(to_jsonb(users)->>'planoDeSaude', plano_de_saude),
-    email_verificado = COALESCE(NULLIF(to_jsonb(users)->>'emailVerificado', '')::boolean, email_verificado, false),
-    contato_emergencia_nome = COALESCE(to_jsonb(users)->>'contatoEmergenciaNome', contato_emergencia_nome),
-    contato_emergencia_telefone = COALESCE(to_jsonb(users)->>'contatoEmergenciaTelefone', contato_emergencia_telefone),
-    contato_emergencia_parentesco = COALESCE(to_jsonb(users)->>'contatoEmergenciaParentesco', contato_emergencia_parentesco),
-    created_at = COALESCE(NULLIF(to_jsonb(users)->>'createdAt', '')::timestamptz, created_at, now()),
-    updated_at = COALESCE(NULLIF(to_jsonb(users)->>'updatedAt', '')::timestamptz, updated_at, now());
-
-ALTER TABLE users ALTER COLUMN email_verificado SET DEFAULT false;
-ALTER TABLE users ALTER COLUMN created_at SET DEFAULT now();
-ALTER TABLE users ALTER COLUMN updated_at SET DEFAULT now();
-UPDATE users SET email_verificado = false WHERE email_verificado IS NULL;
-UPDATE users SET created_at = now() WHERE created_at IS NULL;
-UPDATE users SET updated_at = now() WHERE updated_at IS NULL;
-ALTER TABLE users ALTER COLUMN email_verificado SET NOT NULL;
-ALTER TABLE users ALTER COLUMN created_at SET NOT NULL;
-ALTER TABLE users ALTER COLUMN updated_at SET NOT NULL;
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS auth_tokens (
     token_hash varchar(64) PRIMARY KEY,
-    user_id varchar(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    token_type varchar(16) NOT NULL CHECK (token_type IN ('access', 'refresh')),
-    expires_at timestamptz NOT NULL,
-    revoked boolean NOT NULL DEFAULT false
-);
-CREATE INDEX IF NOT EXISTS idx_auth_tokens_user ON auth_tokens(user_id);
+    user_id varchar(36) NOT NULL,
+    token_type varchar(16) NOT NULL,
+    expires_at timestamp NOT NULL,
+    revoked boolean NOT NULL DEFAULT false,
+    KEY idx_auth_tokens_user (user_id),
+    CONSTRAINT fk_auth_tokens_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT chk_auth_tokens_type CHECK (token_type IN ('access', 'refresh'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS password_reset_codes (
     code_hash varchar(64) PRIMARY KEY,
-    user_id varchar(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    expires_at timestamptz NOT NULL,
-    used boolean NOT NULL DEFAULT false
-);
+    user_id varchar(36) NOT NULL,
+    expires_at timestamp NOT NULL,
+    used boolean NOT NULL DEFAULT false,
+    CONSTRAINT fk_password_reset_codes_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS establishments (
-    id text PRIMARY KEY,
+    id varchar(191) PRIMARY KEY,
     nome text NOT NULL,
-    tipo text NOT NULL,
-    "redeAtendimento" text NOT NULL DEFAULT 'publico',
+    tipo varchar(64) NOT NULL,
+    rede_atendimento varchar(32) NOT NULL DEFAULT 'publico',
     endereco text NOT NULL,
-    avaliacao double precision NOT NULL DEFAULT 0,
-    "avaliacoesCount" integer,
-    status text NOT NULL DEFAULT 'aberto',
-    "statusLabel" text,
-    horario text NOT NULL DEFAULT '24h',
-    telefone text,
-    especialidades text[] NOT NULL DEFAULT '{}',
-    convenios text[] NOT NULL DEFAULT '{}',
-    latitude double precision NOT NULL,
-    longitude double precision NOT NULL,
-    "createdAt" timestamptz NOT NULL DEFAULT now()
-);
-
-ALTER TABLE establishments ADD COLUMN IF NOT EXISTS "redeAtendimento" text;
-ALTER TABLE establishments ADD COLUMN IF NOT EXISTS avaliacao double precision;
-ALTER TABLE establishments ADD COLUMN IF NOT EXISTS "avaliacoesCount" integer;
-ALTER TABLE establishments ADD COLUMN IF NOT EXISTS "statusLabel" text;
-ALTER TABLE establishments ADD COLUMN IF NOT EXISTS horario text;
-ALTER TABLE establishments ADD COLUMN IF NOT EXISTS telefone text;
-ALTER TABLE establishments ADD COLUMN IF NOT EXISTS especialidades text[];
-ALTER TABLE establishments ADD COLUMN IF NOT EXISTS convenios text[];
-ALTER TABLE establishments ADD COLUMN IF NOT EXISTS "createdAt" timestamptz;
-
-UPDATE establishments SET
-    "redeAtendimento" = COALESCE("redeAtendimento", 'publico'),
-    avaliacao = COALESCE(avaliacao, 0),
-    status = COALESCE(status, 'aberto'),
-    horario = COALESCE(horario, '24h'),
-    especialidades = COALESCE(especialidades, '{}'),
-    convenios = COALESCE(convenios, '{}'),
-    "createdAt" = COALESCE("createdAt", now());
-
-ALTER TABLE establishments ALTER COLUMN "redeAtendimento" SET DEFAULT 'publico';
-ALTER TABLE establishments ALTER COLUMN "redeAtendimento" SET NOT NULL;
-ALTER TABLE establishments ALTER COLUMN avaliacao SET DEFAULT 0;
-ALTER TABLE establishments ALTER COLUMN avaliacao SET NOT NULL;
-ALTER TABLE establishments ALTER COLUMN status SET DEFAULT 'aberto';
-ALTER TABLE establishments ALTER COLUMN status SET NOT NULL;
-ALTER TABLE establishments ALTER COLUMN horario SET DEFAULT '24h';
-ALTER TABLE establishments ALTER COLUMN horario SET NOT NULL;
-ALTER TABLE establishments ALTER COLUMN especialidades SET DEFAULT '{}';
-ALTER TABLE establishments ALTER COLUMN especialidades SET NOT NULL;
-ALTER TABLE establishments ALTER COLUMN convenios SET DEFAULT '{}';
-ALTER TABLE establishments ALTER COLUMN convenios SET NOT NULL;
-ALTER TABLE establishments ALTER COLUMN "createdAt" SET DEFAULT now();
-ALTER TABLE establishments ALTER COLUMN "createdAt" SET NOT NULL;
+    avaliacao double NOT NULL DEFAULT 0,
+    avaliacoes_count integer,
+    status varchar(32) NOT NULL DEFAULT 'aberto',
+    status_label varchar(100),
+    horario varchar(100) NOT NULL DEFAULT '24h',
+    telefone varchar(64),
+    especialidades json NOT NULL,
+    convenios json NOT NULL,
+    latitude double NOT NULL,
+    longitude double NOT NULL,
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS first_aid_guides (
-    id text PRIMARY KEY,
-    titulo text NOT NULL,
+    id varchar(191) PRIMARY KEY,
+    titulo varchar(255) NOT NULL,
     resumo text NOT NULL,
-    icon text NOT NULL,
-    passos text[] NOT NULL DEFAULT '{}',
+    icon varchar(64) NOT NULL,
+    passos json NOT NULL,
     ordem integer NOT NULL DEFAULT 0
-);
-ALTER TABLE first_aid_guides ADD COLUMN IF NOT EXISTS ordem integer NOT NULL DEFAULT 0;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS appointments (
     id varchar(36) PRIMARY KEY,
-    user_id varchar(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    establishment_id text NOT NULL REFERENCES establishments(id),
-    especialidade text NOT NULL,
+    user_id varchar(36) NOT NULL,
+    establishment_id varchar(191) NOT NULL,
+    especialidade varchar(255) NOT NULL,
     data date NOT NULL,
     horario time NOT NULL,
-    status text NOT NULL DEFAULT 'agendado',
-    created_at timestamptz NOT NULL DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS idx_appointments_user_date ON appointments(user_id, data, horario);
+    status varchar(32) NOT NULL DEFAULT 'agendado',
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_appointments_user_date (user_id, data, horario),
+    CONSTRAINT fk_appointments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_appointments_establishment FOREIGN KEY (establishment_id) REFERENCES establishments(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS favorites (
-    user_id varchar(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    establishment_id text NOT NULL REFERENCES establishments(id) ON DELETE CASCADE,
-    created_at timestamptz NOT NULL DEFAULT now(),
-    PRIMARY KEY (user_id, establishment_id)
-);
-ALTER TABLE favorites ADD COLUMN IF NOT EXISTS user_id varchar(36);
-ALTER TABLE favorites ADD COLUMN IF NOT EXISTS establishment_id text;
-ALTER TABLE favorites ADD COLUMN IF NOT EXISTS created_at timestamptz;
-
-UPDATE favorites SET
-    user_id = COALESCE(to_jsonb(favorites)->>'userId', user_id),
-    establishment_id = COALESCE(to_jsonb(favorites)->>'establishmentId', establishment_id),
-    created_at = COALESCE(NULLIF(to_jsonb(favorites)->>'createdAt', '')::timestamptz, created_at, now());
-
-ALTER TABLE favorites ALTER COLUMN created_at SET DEFAULT now();
-UPDATE favorites SET created_at = now() WHERE created_at IS NULL;
-ALTER TABLE favorites ALTER COLUMN created_at SET NOT NULL;
+    user_id varchar(36) NOT NULL,
+    establishment_id varchar(191) NOT NULL,
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, establishment_id),
+    CONSTRAINT fk_favorites_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_favorites_establishment FOREIGN KEY (establishment_id) REFERENCES establishments(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS notifications (
     id varchar(36) PRIMARY KEY,
-    user_id varchar(36) NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    icon text NOT NULL DEFAULT 'notifications',
+    user_id varchar(36) NOT NULL,
+    icon varchar(64) NOT NULL DEFAULT 'notifications',
     titulo text NOT NULL,
     descricao text NOT NULL,
     lida boolean NOT NULL DEFAULT false,
-    created_at timestamptz NOT NULL DEFAULT now()
-);
-ALTER TABLE notifications ADD COLUMN IF NOT EXISTS user_id varchar(36);
-ALTER TABLE notifications ADD COLUMN IF NOT EXISTS icon text;
-ALTER TABLE notifications ADD COLUMN IF NOT EXISTS titulo text;
-ALTER TABLE notifications ADD COLUMN IF NOT EXISTS descricao text;
-ALTER TABLE notifications ADD COLUMN IF NOT EXISTS lida boolean;
-ALTER TABLE notifications ADD COLUMN IF NOT EXISTS created_at timestamptz;
-
-UPDATE notifications SET
-    user_id = COALESCE(to_jsonb(notifications)->>'userId', user_id),
-    created_at = COALESCE(NULLIF(to_jsonb(notifications)->>'createdAt', '')::timestamptz, created_at, now()),
-    icon = COALESCE(icon, 'notifications'),
-    lida = COALESCE(lida, false);
-
-ALTER TABLE notifications ALTER COLUMN icon SET DEFAULT 'notifications';
-ALTER TABLE notifications ALTER COLUMN lida SET DEFAULT false;
-ALTER TABLE notifications ALTER COLUMN created_at SET DEFAULT now();
-UPDATE notifications SET created_at = now() WHERE created_at IS NULL;
-ALTER TABLE notifications ALTER COLUMN created_at SET NOT NULL;
-ALTER TABLE notifications ALTER COLUMN icon SET NOT NULL;
-ALTER TABLE notifications ALTER COLUMN lida SET NOT NULL;
-
-CREATE INDEX IF NOT EXISTS idx_notifications_user_date ON notifications(user_id, created_at DESC);
+    created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_notifications_user_date (user_id, created_at),
+    CONSTRAINT fk_notifications_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

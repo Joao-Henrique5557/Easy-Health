@@ -1,14 +1,17 @@
 package br.com.easyhealth.controller;
 
-import java.sql.Array;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import br.com.easyhealth.service.AppointmentAvailability;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,12 +24,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class CatalogController {
     private static final List<String> SPECIALTIES = List.of(
             "Cardiologia", "Clínica médica", "Dermatologia", "Pediatria");
-    private static final List<String> AVAILABLE_TIMES = List.of(
-            "08:00", "09:30", "10:00", "11:30", "14:00", "15:30", "16:00");
     private final JdbcTemplate jdbc;
+    private final ObjectMapper objectMapper;
 
-    public CatalogController(JdbcTemplate jdbc) {
+    public CatalogController(JdbcTemplate jdbc, ObjectMapper objectMapper) {
         this.jdbc = jdbc;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping("/api/primeiros-socorros")
@@ -38,7 +41,7 @@ public class CatalogController {
                 SELECT id, titulo, resumo, icon, passos FROM first_aid_guides
                 WHERE lower(titulo) LIKE ? OR lower(resumo) LIKE ?
                 ORDER BY titulo
-                """, CatalogController::mapGuide, contains(query), contains(query));
+                """, this::mapGuide, contains(query), contains(query));
     }
 
     @GetMapping("/api/primeiros-socorros/busca")
@@ -61,7 +64,7 @@ public class CatalogController {
     public Map<String, Object> guide(@PathVariable String id) {
         return jdbc.query("""
                 SELECT id, titulo, resumo, icon, passos FROM first_aid_guides WHERE id = ?
-                """, CatalogController::mapGuide, id).stream().findFirst().orElseThrow(() ->
+                """, this::mapGuide, id).stream().findFirst().orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Guia não encontrado."));
     }
 
@@ -73,7 +76,9 @@ public class CatalogController {
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Double raioKm) {
         List<Map<String, Object>> establishments = jdbc.query("""
-                SELECT id, nome, tipo, endereco, latitude, longitude, status
+                SELECT id, nome, tipo, rede_atendimento, endereco, avaliacao, avaliacoes_count,
+                    status, status_label, horario, telefone, especialidades, convenios,
+                    latitude, longitude
                 FROM establishments ORDER BY nome
                 """, (row, index) -> mapEstablishment(row));
         return establishments.stream()
@@ -107,9 +112,9 @@ public class CatalogController {
     }
 
     @GetMapping("/api/estabelecimentos/{id}/horarios-disponiveis")
-    public List<String> availableTimes(@PathVariable String id) {
+    public List<String> availableTimes(@PathVariable String id, @RequestParam LocalDate data) {
         findEstablishment(id);
-        return AVAILABLE_TIMES;
+        return AppointmentAvailability.forDate(jdbc, id, data);
     }
 
     @GetMapping("/api/especialidades")
@@ -191,33 +196,31 @@ public class CatalogController {
     private List<Map<String, Object>> allGuides() {
         return jdbc.query("""
                 SELECT id, titulo, resumo, icon, passos FROM first_aid_guides ORDER BY titulo
-                """, CatalogController::mapGuide);
+                """, this::mapGuide);
     }
 
     private Map<String, Object> findEstablishment(String id) {
         return jdbc.query("""
-                SELECT id, nome, tipo, endereco, latitude, longitude, status
+                SELECT id, nome, tipo, rede_atendimento, endereco, avaliacao, avaliacoes_count,
+                    status, status_label, horario, telefone, especialidades, convenios,
+                    latitude, longitude
                 FROM establishments WHERE id = ?
                 """, (row, index) -> mapEstablishment(row), id).stream().findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Estabelecimento não encontrado."));
     }
 
-    private static Map<String, Object> mapGuide(ResultSet row, int index) throws SQLException {
-        Array sqlSteps = row.getArray("passos");
-        List<String> steps = sqlSteps == null
-                ? List.of()
-                : Arrays.asList((String[]) sqlSteps.getArray());
+    private Map<String, Object> mapGuide(ResultSet row, int index) throws SQLException {
         Map<String, Object> guide = new LinkedHashMap<>();
         guide.put("id", row.getString("id"));
         guide.put("titulo", row.getString("titulo"));
         guide.put("resumo", row.getString("resumo"));
         guide.put("icon", row.getString("icon"));
-        guide.put("passos", steps);
+        guide.put("passos", readJsonList(row.getString("passos")));
         return guide;
     }
 
-    private static Map<String, Object> mapEstablishment(ResultSet row) throws SQLException {
+    private Map<String, Object> mapEstablishment(ResultSet row) throws SQLException {
         String id = row.getString("id");
         String type = row.getString("tipo");
         String address = row.getString("endereco");
@@ -228,16 +231,27 @@ public class CatalogController {
         place.put("id", id);
         place.put("nome", row.getString("nome"));
         place.put("tipo", type);
-        place.put("redeAtendimento", type.equals("hospital") ? "privado" : "publico");
+        place.put("redeAtendimento", row.getString("rede_atendimento"));
         place.put("endereco", address);
-        place.put("avaliacao", 4.8);
-        place.put("avaliacoesCount", 320);
+        place.put("avaliacao", row.getDouble("avaliacao"));
+        place.put("avaliacoesCount", row.getObject("avaliacoes_count", Integer.class));
         place.put("status", status);
-        place.put("statusLabel", status.equalsIgnoreCase("aberto") ? "Aberto agora" : "Fechado");
-        place.put("horario", type.equals("hospital") || type.equals("upa") ? "24h" : "Segunda a sexta");
+        place.put("statusLabel", row.getString("status_label"));
+        place.put("horario", row.getString("horario"));
+        place.put("telefone", row.getString("telefone"));
+        place.put("especialidades", readJsonList(row.getString("especialidades")));
+        place.put("convenios", readJsonList(row.getString("convenios")));
         place.put("latitude", latitude);
         place.put("longitude", longitude);
         return place;
+    }
+
+    private List<String> readJsonList(String value) throws SQLException {
+        try {
+            return value == null ? List.of() : objectMapper.readValue(value, new TypeReference<>() {});
+        } catch (JsonProcessingException exception) {
+            throw new SQLException("Dados JSON inválidos no catálogo do banco de dados.", exception);
+        }
     }
 
     private static Map<String, Object> withDistance(Map<String, Object> place,

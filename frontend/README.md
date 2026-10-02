@@ -55,7 +55,7 @@ src/
 
 ## Backend
 
-O backend em `../backend` usa **Spring Boot 3 + Java 17 + PostgreSQL** e sobe como JAR
+O backend em `../backend` usa **Spring Boot 3 + Java 17 + MySQL** e sobe como JAR
 executável. Ele implementa as rotas usadas pelo aplicativo e persiste contas, sessões,
 agendamentos, favoritos e notificações. Consulte `../backend/README.md` para executar e
 entender os limites das integrações demonstrativas. A rota do assistente é:

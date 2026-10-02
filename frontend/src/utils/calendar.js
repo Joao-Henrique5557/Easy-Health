@@ -1,3 +1,5 @@
+import { formatLocalDateISO } from "./date";
+
 const WEEKDAY_LABELS = ["D", "S", "T", "Q", "Q", "S", "S"];
 export function getWeekdayLabels() {
   return WEEKDAY_LABELS;
@@ -22,7 +24,7 @@ export function getMonthGrid(reference) {
     date.setDate(start.getDate() + i);
     days.push({
       date,
-      iso: date.toISOString().slice(0, 10),
+      iso: formatLocalDateISO(date),
       day: date.getDate(),
       inCurrentMonth: date.getMonth() === month
     });

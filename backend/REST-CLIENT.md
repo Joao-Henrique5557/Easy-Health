@@ -33,5 +33,5 @@ Cada bloco iniciado por `###` é uma requisição independente. Os comentários 
 
 - **404**: confira se está usando `http://localhost:3333`, não a porta do Adminer.
 - **401**: execute o login no mesmo arquivo antes das chamadas protegidas.
-- **Falha no banco**: verifique `docker compose logs backend` e aguarde o healthcheck do PostgreSQL.
+- **Falha no banco**: verifique `docker compose logs backend` e aguarde o healthcheck do MySQL.
 - **Mudança não aparece**: reinicie o container com `docker compose up --build`.

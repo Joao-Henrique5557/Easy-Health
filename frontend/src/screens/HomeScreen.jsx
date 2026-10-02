@@ -239,7 +239,7 @@ export function HomeScreen() {
                   {formatDateShort(booking.data)} às {booking.horario}
                 </Text>
               </View>
-              <Pill>Confirmada</Pill>
+              <Pill>{booking.status === "confirmado" ? "Confirmada" : "Agendada"}</Pill>
             </View>
           </View>)}
       </ScrollView>

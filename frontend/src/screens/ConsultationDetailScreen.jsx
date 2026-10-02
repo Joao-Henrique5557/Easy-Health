@@ -63,7 +63,7 @@ export function ConsultationDetailScreen() {
         }}>
             Data da Consulta
           </Text>
-          <Pill>{consulta.status === "realizada" ? "Realizada" : "Agendada"}</Pill>
+          <Pill>{consulta.status === "concluido" || consulta.status === "realizada" ? "Realizada" : consulta.status === "cancelado" ? "Cancelada" : "Agendada"}</Pill>
         </View>
         <Text style={{
         fontFamily: fonts.bold,
@@ -96,7 +96,7 @@ export function ConsultationDetailScreen() {
           fontSize: 11.5,
           color: colors.inkSoft
         }}>
-            {consulta.especialidade} • {consulta.local}
+            {consulta.especialidade} • {consulta.local ?? consulta.establishmentNome}
           </Text>
         </View>
       </View>

@@ -84,7 +84,7 @@ export function HistoryScreen() {
           }}>
                   {formatDateShort(c.data)}
                 </Text>
-                <Pill>{c.status === "realizada" ? "Realizada" : "Agendada"}</Pill>
+                <Pill>{c.status === "concluido" || c.status === "realizada" ? "Realizada" : c.status === "cancelado" ? "Cancelada" : "Agendada"}</Pill>
               </View>
               <Text style={{
           fontFamily: fonts.bold,
@@ -98,7 +98,7 @@ export function HistoryScreen() {
           color: colors.inkSoft,
           marginTop: 2
         }}>
-                {c.especialidade} • {c.local}
+                {c.especialidade} • {c.local ?? c.establishmentNome}
               </Text>
               {c.diagnostico && <Pressable onPress={() => navigation.navigate("ConsultationDetail", {
           id: c.id

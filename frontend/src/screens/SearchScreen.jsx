@@ -39,11 +39,11 @@ export function SearchScreen() {
   useEffect(() => {
     setLoading(true);
     establishmentsService.search({
-      latitude: coords?.latitude ?? 0,
-      longitude: coords?.longitude ?? 0,
+      latitude: coords?.latitude,
+      longitude: coords?.longitude,
       tipo: filtro,
       query: query || undefined,
-      raioKm: 10
+      raioKm: coords ? 10 : undefined
     }).then(setResults).finally(() => setLoading(false));
   }, [coords, filtro, query]);
   async function handleRoute(item) {

@@ -2,18 +2,19 @@ name: easy-health
 
 services:
   db:
-    image: postgres:16-alpine
+    image: mysql:8.4
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-easyhealth}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-easyhealth}
-      POSTGRES_DB: ${POSTGRES_DB:-easyhealth}
+      MYSQL_USER: ${MYSQL_USER:-easyhealth}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the root .env file}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the root .env file}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-easyhealth}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${MYSQL_PORT:-3306}:3306"
     volumes:
-      - easy-health-db-data:/var/lib/postgresql/data
+      - easy-health-mysql-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-easyhealth}"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u\"$${MYSQL_USER}\" --password=\"$${MYSQL_PASSWORD}\" --silent"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -27,9 +28,9 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-easyhealth}
-      DB_USER: ${POSTGRES_USER:-easyhealth}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-easyhealth}
+      DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-easyhealth}?serverTimezone=UTC&characterEncoding=UTF-8
+      DB_USER: ${MYSQL_USER:-easyhealth}
+      DB_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the root .env file}
       CORS_ORIGIN: ${CORS_ORIGIN:-*}
       JWT_ACCESS_EXPIRES_MINUTES: ${JWT_ACCESS_EXPIRES_MINUTES:-15}
       JWT_REFRESH_EXPIRES_DAYS: ${JWT_REFRESH_EXPIRES_DAYS:-7}
@@ -42,9 +43,8 @@ services:
       timeout: 5s
       retries: 5
 
-  # UI web opcional para inspecionar o banco (útil para depuração e para a
-  # apresentação do projeto) — acesse em http://localhost:8080, sistema
-  # "PostgreSQL", servidor "db", com as mesmas credenciais do .env.
+  # UI web opcional para inspecionar o banco — acesse em http://localhost:8080,
+  # sistema "MySQL", servidor "db", com as credenciais do .env.
   adminer:
     image: adminer:4
     restart: unless-stopped
@@ -54,4 +54,4 @@ services:
       - "${ADMINER_PORT:-8080}:8080"
 
 volumes:
-  easy-health-db-data:
+  easy-health-mysql-data:

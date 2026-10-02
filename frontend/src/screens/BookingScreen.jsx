@@ -12,6 +12,8 @@ import { useAppNavigation } from "@/navigation/useAppNavigation";
 import { establishmentsService } from "@/services/establishmentsService";
 import { bookingService } from "@/services/bookingService";
 import { getMonthGrid, getWeekdayLabels, getMonthLabel } from "@/utils/calendar";
+import { formatLocalDateISO } from "@/utils/date";
+import { getApiErrorMessage } from "@/utils/apiError";
 const DOCTOR_PREVIEW = {
   nome: "Dr. Carlos Mendes",
   crm: "CRM 12345",
@@ -24,7 +26,7 @@ export function BookingScreen() {
   const [especialidade, setEspecialidade] = useState("");
   const [showEspecialidades, setShowEspecialidades] = useState(false);
   const [monthRef, setMonthRef] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [selectedDate, setSelectedDate] = useState(() => formatLocalDateISO(new Date()));
   const [horarios, setHorarios] = useState([]);
   const [selectedHorario, setSelectedHorario] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -58,8 +60,8 @@ export function BookingScreen() {
       navigation.navigate("BookingConfirmation", {
         bookingId: booking.id
       });
-    } catch {
-      Alert.alert("Não foi possível agendar", "Tente novamente em instantes.");
+    } catch (error) {
+      Alert.alert("Não foi possível agendar", getApiErrorMessage(error, "Tente novamente em instantes."));
     } finally {
       setSubmitting(false);
     }
@@ -210,7 +212,8 @@ export function BookingScreen() {
       }}>
           {grid.map(d => {
           const isSelected = d.iso === selectedDate;
-          return <Pressable key={d.iso} onPress={() => d.inCurrentMonth && setSelectedDate(d.iso)} disabled={!d.inCurrentMonth} style={{
+          const isPast = d.iso < formatLocalDateISO(new Date());
+          return <Pressable key={d.iso} onPress={() => d.inCurrentMonth && !isPast && setSelectedDate(d.iso)} disabled={!d.inCurrentMonth || isPast} style={{
             width: `${100 / 7}%`,
             aspectRatio: 1,
             alignItems: "center",
@@ -227,7 +230,7 @@ export function BookingScreen() {
                   <Text style={{
                 fontFamily: isSelected ? fonts.bold : fonts.regular,
                 fontSize: 12.5,
-                color: !d.inCurrentMonth ? colors.inkFaint : isSelected ? colors.white : colors.ink
+                color: !d.inCurrentMonth || isPast ? colors.inkFaint : isSelected ? colors.white : colors.ink
               }}>
                     {d.day}
                   </Text>
@@ -245,7 +248,12 @@ export function BookingScreen() {
     }}>
         Horários Disponíveis
       </Text>
-      <View style={{
+      {horarios.length === 0 ? <Text style={{
+      fontFamily: fonts.regular,
+      fontSize: 12,
+      color: colors.inkSoft,
+      marginBottom: 20
+    }}>Não há horários disponíveis para esta data.</Text> : <View style={{
       flexDirection: "row",
       flexWrap: "wrap",
       gap: 8,
@@ -270,7 +278,7 @@ export function BookingScreen() {
               </Text>
             </Pressable>;
       })}
-      </View>
+      </View>}
 
       <View style={{
       flexDirection: "row",

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { authService } from '../services/authService';
+import { getErrorMessage } from '../utils/apiError';
 const RegisterScreen = ({
   navigation: passedNavigation,
   route,
@@ -23,8 +24,8 @@ const RegisterScreen = ({
       Alert.alert('Erro', 'As senhas não correspondem.');
       return;
     }
-    if (senha.length < 6) {
-      Alert.alert('Erro', 'A senha deve ter pelo menos 6 caracteres.');
+    if (senha.length < 8 || senha.length > 72) {
+      Alert.alert('Erro', 'A senha deve ter entre 8 e 72 caracteres.');
       return;
     }
     setLoading(true);
@@ -54,8 +55,7 @@ const RegisterScreen = ({
         }
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Erro ao registrar';
-      Alert.alert('Erro', msg);
+      Alert.alert('Erro', getErrorMessage(err, 'Não foi possível criar sua conta.'));
     } finally {
       setLoading(false);
     }

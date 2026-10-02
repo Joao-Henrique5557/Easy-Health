@@ -21,7 +21,10 @@ export function ForgotPasswordScreen() {
     setLoading(true);
     try {
       await authService.forgotPassword(email);
-      Alert.alert("Link enviado", "Verifique seu e-mail para redefinir sua senha.");
+      Alert.alert(
+        "Solicitação recebida",
+        "Se a conta existir, enviaremos instruções. O envio de e-mail ainda não está configurado neste ambiente."
+      );
       navigation.goBack();
     } catch (error) {
       Alert.alert("Não foi possível enviar", getApiErrorMessage(error, "Verifique o e-mail informado e tente novamente."));

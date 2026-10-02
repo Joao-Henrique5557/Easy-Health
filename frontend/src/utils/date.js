@@ -12,10 +12,11 @@ export function brDateToISO(value) {
   const diaNum = Number(dia);
   const mesNum = Number(mes);
   if (mesNum < 1 || mesNum > 12 || diaNum < 1 || diaNum > 31) return null;
-  const iso = `${ano}-${mes}-${dia}`;
-  const parsed = new Date(iso);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return iso;
+  const parsed = new Date(Date.UTC(Number(ano), mesNum - 1, diaNum));
+  if (parsed.getUTCFullYear() !== Number(ano)
+      || parsed.getUTCMonth() !== mesNum - 1
+      || parsed.getUTCDate() !== diaNum) return null;
+  return `${ano}-${mes}-${dia}`;
 }
 
 /** Converte "AAAA-MM-DD" para "DD/MM/AAAA", para exibir em campos de formulário. */
@@ -26,7 +27,7 @@ export function isoDateToBR(value) {
   return `${dia}/${mes}/${ano}`;
 }
 export function formatDateLong(iso) {
-  const date = new Date(iso);
+  const date = dateOnlyAsLocal(iso);
   return date.toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "2-digit",
@@ -35,7 +36,7 @@ export function formatDateLong(iso) {
   });
 }
 export function formatDateShort(iso) {
-  const date = new Date(iso);
+  const date = dateOnlyAsLocal(iso);
   return date.toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "short",
@@ -54,4 +55,18 @@ export function maskDateInput(text) {
   const digits = text.replace(/\D/g, "").slice(0, 8);
   const parts = [digits.slice(0, 2), digits.slice(2, 4), digits.slice(4, 8)].filter(Boolean);
   return parts.join("/");
+}
+
+export function formatLocalDateISO(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function dateOnlyAsLocal(value) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return new Date(value);
+  const [, year, month, day] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day));
 }
