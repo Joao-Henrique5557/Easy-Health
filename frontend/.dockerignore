@@ -1,0 +1,14 @@
+# Dependências locais não devem substituir as instaladas para Linux no container.
+node_modules
+
+# Arquivos gerados pelo Expo e pelo build web.
+.expo
+dist
+web-build
+
+# Arquivos locais e metadados do controle de versão.
+.env
+.env.*
+!.env.example
+.git
+*.log

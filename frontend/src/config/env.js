@@ -1,7 +1,7 @@
 import Constants from "expo-constants";
 
-// Em produção, troque `apiUrl` em app.json (extra.apiUrl) ou use variáveis
-// de ambiente do EAS (eas.json) por ambiente (dev/staging/prod).
+// EXPO_PUBLIC_API_URL configura a API por ambiente, inclusive no Docker.
+// Sem ela, usamos a configuração do Expo e, por fim, localhost.
 //
 // IMPORTANTE sobre qual endereço usar aqui (pegadinha clássica de RN):
 // - Web / simulador iOS: "http://localhost:3333" funciona.
@@ -14,7 +14,10 @@ import Constants from "expo-constants";
 // - Backend rodando via docker-compose: a porta é publicada no host
 //   normalmente (ver docker-compose.yml), então as regras acima continuam
 //   valendo — o container não muda qual IP o celular usa para chegar nele.
-export const API_URL = Constants.expoConfig?.extra?.apiUrl || "http://localhost:3333";
+export const API_URL =
+  process.env.EXPO_PUBLIC_API_URL ||
+  Constants.expoConfig?.extra?.apiUrl ||
+  "http://localhost:3333";
 export const EMERGENCY_NUMBERS = {
   samu: "192",
   bombeiros: "193",

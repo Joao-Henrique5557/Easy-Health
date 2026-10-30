@@ -1,30 +1,32 @@
-name: easy-health
-
+# Serviços da aplicação local. Execute este arquivo a partir da raiz do projeto.
 services:
   db:
     image: mysql:8.4
     restart: unless-stopped
     networks:
       - app
+    # Credenciais são lidas do .env; senhas reais não devem ir para o repositório.
     environment:
       MYSQL_USER: ${MYSQL_USER:-easyhealth}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the root .env file}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the root .env file}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-easyhealth}
+    # A porta publicada permite ferramentas locais; containers usam o nome "db".
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - easy-health-mysql-data:/var/lib/mysql
+    # O backend aguarda o banco aceitar conexões antes de iniciar.
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u\"$${MYSQL_USER}\" --password=\"$${MYSQL_PASSWORD}\" --silent"]
+      test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --user=\"$${MYSQL_USER}\" --password=\"$${MYSQL_PASSWORD}\" --silent"]
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 30s
 
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
     restart: unless-stopped
     networks:
       - app
@@ -41,14 +43,31 @@ services:
       RESET_CODE_LOG_ENABLED: ${RESET_CODE_LOG_ENABLED:-false}
     ports:
       - "${BACKEND_PORT:-3333}:8080"
+    # A mesma rota ajuda o Compose a detectar falhas da API.
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
-  # UI web opcional para inspecionar o banco — acesse em http://localhost:8080,
-  # sistema "MySQL", servidor "db", com as credenciais do .env.
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    networks:
+      - app
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      # Esta URL é acessada pelo navegador, não pelo container do frontend.
+      EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:${BACKEND_PORT:-3333}}
+    ports:
+      - "${FRONTEND_PORT:-8081}:8081"
+
+  # Interface opcional para consultar o MySQL em http://localhost:8080.
+  # No Adminer, escolha "MySQL" e use "db" como servidor.
   adminer:
     image: adminer:4
     restart: unless-stopped
@@ -60,7 +79,9 @@ services:
       - "${ADMINER_PORT:-8080}:8080"
 
 volumes:
+  # Os dados permanecem aqui mesmo quando os containers são recriados.
   easy-health-mysql-data:
 
 networks:
+  # Os serviços se encontram pelos nomes definidos no Compose.
   app:

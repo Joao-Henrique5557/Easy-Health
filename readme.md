@@ -1,888 +1,144 @@
-# Easy Health
+# Easy Health — desenvolvimento
 
-> Plataforma integrada de saúde que centraliza informações, organização de dados de saúde e busca por atendimentos públicos e privados em um único aplicativo.
+Guia técnico para configurar, executar e testar o código do repositório.
 
----
+## Stack
 
-## 1. Visão do Projeto
+- **Frontend:** React Native, Expo 51 e JavaScript; Expo também serve a versão web.
+- **Backend:** Java 17, Spring Boot 3.4 e JDBC.
+- **Banco de dados:** MySQL 8.4.
+- **Ambiente local:** Docker Compose.
 
-O **Easy Health** é uma plataforma digital desenvolvida para facilitar o acesso da população a informações e serviços relacionados à saúde.
+## Pré-requisitos
 
-A proposta é reunir, em um único aplicativo, funcionalidades que atualmente estão distribuídas entre diferentes plataformas, como:
+- Git.
+- Docker com Docker Compose.
+- Para desenvolvimento sem Docker: Node.js 20+ e npm; Java 17+ e Maven 3.9+.
 
-- Informações de saúde.
-- Primeiros socorros.
-- Histórico de consultas e exames.
-- Busca por hospitais e clínicas.
-- Informações sobre preços.
-- Disponibilidade de atendimentos.
-- Agendamento de consultas.
-- Localização de serviços de saúde.
-- Recursos para situações de emergência.
+## Executar com Docker
 
-O objetivo é proporcionar uma experiência **mais simples, rápida, integrada e transparente** para o usuário.
-
----
-
-# 2. Problema
-
-O sistema de saúde brasileiro enfrenta diversos desafios relacionados ao acesso, organização e disponibilidade de informações.
-
-Entre os principais problemas estão:
-
-- Falta de acesso rápido à informação.
-- Necessidade de utilizar diferentes aplicativos para diferentes serviços.
-- Busca de informações em diversos sites e plataformas.
-- Desorganização no acompanhamento de exames e consultas.
-- Dificuldade para encontrar atendimento, especialmente em situações de urgência.
-- Falta de conhecimento da população sobre primeiros socorros.
-- Pouca transparência sobre preços de serviços privados.
-- Dificuldade para verificar a disponibilidade de consultas.
-- Informações de saúde distribuídas em diferentes sistemas.
-
-Como consequência, o usuário pode perder tempo procurando informações ou tentando descobrir onde e como conseguir atendimento.
-
----
-
-# 3. Solução
-
-O Easy Health propõe uma **plataforma única de saúde**, funcionando como um hub que conecta informação, organização e atendimento.
-
-A plataforma busca centralizar:
-
-```text
-                    EASY HEALTH
-                         │
-       ┌─────────────────┼─────────────────┐
-       │                 │                 │
-  INFORMAÇÃO         ORGANIZAÇÃO       ATENDIMENTO
-       │                 │                 │
-       ├─ Saúde          ├─ Perfil        ├─ Hospitais
-       ├─ Primeiros      ├─ Consultas     ├─ Clínicas
-       │  socorros       ├─ Exames        ├─ UBS
-       └─ Guias          └─ Histórico     ├─ UPAs
-                                          └─ Laboratórios
-                                                │
-                                                ▼
-                                      PREÇOS / DISPONIBILIDADE
-                                                │
-                                                ▼
-                                           AGENDAMENTO
-```
-
-A proposta não é apenas criar um aplicativo para consultas, mas desenvolver um **hub completo de saúde**.
-
----
-
-# 4. Objetivos
-
-## Objetivo geral
-
-Facilitar o acesso da população a informações e serviços de saúde por meio de uma plataforma integrada, simples e acessível.
-
-## Objetivos específicos
-
-- Centralizar informações de saúde.
-- Facilitar a busca por atendimento.
-- Reduzir o tempo gasto procurando serviços médicos.
-- Organizar informações pessoais de saúde.
-- Disponibilizar conteúdos educativos sobre primeiros socorros.
-- Aumentar a transparência no setor privado.
-- Facilitar a comparação entre diferentes serviços.
-- Auxiliar usuários em situações de emergência.
-- Integrar serviços públicos e privados em uma experiência única.
-
----
-
-# 5. Público-Alvo
-
-O Easy Health pode atender diferentes perfis de usuários:
-
-- Pessoas que utilizam o SUS.
-- Usuários de planos de saúde.
-- Pessoas que utilizam serviços particulares.
-- Pessoas que precisam encontrar atendimento rapidamente.
-- Familiares e cuidadores.
-- Usuários que desejam organizar suas informações de saúde.
-- Pessoas que buscam informações básicas sobre primeiros socorros.
-
----
-
-# 6. Funcionalidades
-
-## 6.1 Cadastro de usuário
-
-Permite criar uma conta para utilizar recursos personalizados.
-
-Possíveis informações:
-
-- Nome.
-- E-mail.
-- Telefone.
-- Data de nascimento.
-- Informações básicas de perfil.
-
-Futuramente, poderá existir integração com sistemas oficiais de saúde, respeitando os requisitos legais e de segurança aplicáveis.
-
----
-
-## 6.2 Primeiros socorros
-
-Área destinada ao acesso rápido a informações educativas sobre primeiros socorros.
-
-Exemplos:
-
-- Desmaios.
-- Engasgos.
-- Crises respiratórias.
-- Convulsões.
-- Hemorragias.
-- Queimaduras.
-- Parada cardiorrespiratória.
-
-O conteúdo poderá incluir:
-
-- Guias passo a passo.
-- Vídeos.
-- Ilustrações.
-- Instruções rápidas.
-
-> O conteúdo deve ser validado por profissionais qualificados e não substitui atendimento médico profissional.
-
----
-
-## 6.3 Histórico de saúde
-
-Área destinada à organização das informações de saúde do usuário.
-
-Possíveis recursos:
-
-- Consultas.
-- Exames.
-- Resultados.
-- Vacinas.
-- Medicamentos.
-- Documentos médicos.
-
-Em versões futuras, os dados poderão ser obtidos por meio de integrações com sistemas oficiais.
-
----
-
-## 6.4 Busca por atendimento
-
-Permite localizar serviços de saúde próximos.
-
-Exemplos:
-
-- Hospitais.
-- Clínicas.
-- UBS.
-- UPAs.
-- Laboratórios.
-- Consultórios.
-
-A busca poderá utilizar filtros como:
-
-- Distância.
-- Especialidade.
-- Tipo de atendimento.
-- Preço.
-- Disponibilidade.
-- Horário de funcionamento.
-
----
-
-## 6.5 Preços e disponibilidade
-
-Para serviços privados, a plataforma poderá apresentar:
-
-- Preço da consulta.
-- Especialidade.
-- Horários disponíveis.
-- Serviços oferecidos.
-- Convênios aceitos.
-
-O objetivo é aumentar a transparência e permitir que o usuário compare diferentes opções.
-
----
-
-## 6.6 Agendamento
-
-Quando houver integração com o estabelecimento, o usuário poderá:
-
-1. Encontrar um serviço.
-2. Consultar horários disponíveis.
-3. Selecionar um horário.
-4. Realizar o agendamento.
-5. Consultar seus próximos atendimentos.
-
----
-
-## 6.7 Modo de emergência
-
-O aplicativo terá uma experiência otimizada para situações em que o usuário precisa de informação rapidamente.
-
-Possíveis recursos:
-
-- Acesso rápido aos primeiros socorros.
-- Localização de hospitais e UPAs.
-- Informações de contato.
-- Rotas.
-- Serviços de emergência próximos.
-- Interface simplificada.
-
----
-
-## 6.8 Assistente de IA (Easy Health Assistant)
-
-Um assistente conversacional integrado ao aplicativo, com dois papéis principais: **guiar o usuário pelo app** e **atuar como suporte de emergência 24h**.
-
-### Navegação guiada
-
-- O usuário descreve o que precisa em linguagem natural (ex.: _"quero achar um pediatra perto de mim"_, _"onde vejo meus exames?"_, _"como faço para agendar uma consulta?"_).
-- A IA identifica a intenção e redireciona o usuário diretamente para a tela ou fluxo correspondente do app (deep link), em vez de apenas explicar em texto.
-- Também responde dúvidas gerais sobre como cada funcionalidade do app funciona, atuando como um "guia" permanente e contextual, reduzindo a curva de aprendizado do aplicativo.
-
-### Suporte 24h em situações de emergência
-
-- Funciona como uma camada de apoio disponível a qualquer hora, com um modo dedicado para emergências de saúde.
-- Ao detectar sinais de uma situação de emergência na conversa, a IA prioriza imediatamente:
-  1. Orientar o usuário a acionar os serviços de emergência reais (ex.: SAMU 192, Bombeiros 193, Polícia 190).
-  2. Localizar e indicar a rota até o hospital/UPA mais próximo.
-  3. Exibir instruções básicas de primeiros socorros — sempre conteúdo previamente validado por profissionais de saúde — enquanto o socorro não chega.
-- A IA **nunca substitui** atendimento médico, diagnóstico ou os serviços de emergência oficiais; sua função é orientar, acelerar o acesso à informação certa e nunca atrasar o contato com socorro real.
-
-### Segurança e ética
-
-- Respostas relacionadas à saúde são tratadas como **informativas**, nunca como diagnóstico ou prescrição.
-- Todo conteúdo usado pela IA em primeiros socorros/emergência segue a mesma exigência de validação profissional descrita na seção 19.
-- Disclaimers claros e visíveis em qualquer resposta relacionada a saúde ou emergência.
-- Conversas com a IA são tratadas como dado sensível de saúde, com minimização de retenção e criptografia (ver seção 14).
-- Em caso de dúvida sobre a gravidade da situação, a IA deve sempre pender para orientar o acionamento de serviços reais.
-- A ligação nunca é feita automaticamente pelo app — a IA só orienta; quem disca é sempre o usuário, tocando no número (ver `frontend/src/services/emergencyService.ts`).
-
-### Implementação
-
-O assistente é implementado como um componente no app (`AssistantFab` + `AssistantPanel`) que chama `POST /api/assistant/message`. No MVP, a API responde com regras simples de navegação e segurança; a detecção de emergência também roda **localmente no app**, antes de qualquer chamada de rede.
-
----
-
-# 7. Estratégia do Oceano Azul
-
-A estratégia do **Oceano Azul** busca criar uma nova proposta de valor em vez de competir apenas com base nas mesmas características oferecidas pelos concorrentes.
-
-Para o Easy Health, essa estratégia é estruturada por meio do **Modelo das Quatro Ações**.
-
----
-
-# 8. Modelo das Quatro Ações
-
-## 8.1 Eliminar
-
-O Easy Health busca eliminar fatores que tornam a experiência do usuário fragmentada.
-
-### Elementos eliminados ou reduzidos da experiência atual
-
-- Uso de vários aplicativos para diferentes serviços de saúde.
-- Busca de informações em diversos sites e plataformas.
-- Falta de transparência sobre preços.
-- Dificuldade para descobrir a disponibilidade de atendimentos.
-
-A proposta é concentrar essas informações em uma única experiência.
-
----
-
-## 8.2 Reduzir
-
-O produto busca reduzir:
-
-- Tempo gasto na busca por atendimento médico.
-- Complexidade no acesso às informações de saúde.
-- Dificuldade na organização de exames.
-- Dificuldade na organização de consultas.
-- Fragmentação do histórico médico.
-
----
-
-## 8.3 Elevar
-
-O Easy Health pretende elevar:
-
-- Facilidade de uso da plataforma.
-- Rapidez no acesso a informações em situações de emergência.
-- Transparência sobre preços.
-- Transparência sobre disponibilidade de consultas.
-- Integração entre serviços de saúde.
-
----
-
-## 8.4 Criar
-
-O projeto propõe criar:
-
-- Plataforma integrada de informações, organização e atendimento em saúde.
-- Área de primeiros socorros com vídeos e guias explicativos.
-- Sistema de comparação de preços entre clínicas e consultas.
-- Centralização de informações e serviços do SUS e da rede privada.
-- Experiência de atendimento orientada à localização e disponibilidade.
-
----
-
-# 9. Matriz de Avaliação de Valor
-
-A matriz compara atributos relevantes do mercado atual com a proposta do Easy Health.
-
-| Atributo de Valor                 | Aplicativos Atuais | Easy Health |
-| --------------------------------- | -----------------: | ----------: |
-| Agendamento de consultas          |               Alto |        Alto |
-| Histórico de saúde                |              Médio |        Alto |
-| Informações de primeiros socorros |              Baixo |        Alto |
-| Comparação de preços              |              Baixo |        Alto |
-| Integração de serviços            |              Baixo |  Muito Alto |
-| Facilidade de uso                 |              Médio |        Alto |
-| Atendimento de emergência         |              Baixo |        Alto |
-| Centralização de informações      |              Baixo |  Muito Alto |
-
-### Interpretação
-
-O Easy Health busca competir de forma diferente ao elevar atributos que normalmente possuem menor presença em soluções isoladas.
-
-Os principais pontos de diferenciação são:
-
-**Integração de serviços**
-
-Conectar diferentes funcionalidades em uma única plataforma.
-
-**Centralização**
-
-Reduzir a necessidade de alternar entre aplicativos, sites e serviços diferentes.
-
-**Primeiros socorros**
-
-Adicionar uma dimensão educacional e preventiva que normalmente não é o foco principal de plataformas de agendamento.
-
-**Transparência**
-
-Facilitar a visualização e comparação de preços e disponibilidade no setor privado.
-
-**Emergência**
-
-Priorizar velocidade e simplicidade de acesso quando o usuário estiver em uma situação crítica.
-
----
-
-# 10. Diferencial Competitivo
-
-Atualmente existem plataformas especializadas em diferentes partes da jornada de saúde.
-
-Exemplos:
-
-- **Conecte SUS** → serviços e informações relacionadas ao sistema público.
-- **Doctoralia** → busca e agendamento de consultas.
-- **Easy Health** → proposta de integração entre informação, organização, atendimento e primeiros socorros.
-
-O diferencial não está necessariamente em oferecer uma funcionalidade completamente inédita, mas em **combinar funcionalidades existentes de maneira integrada e orientada à experiência do usuário**.
-
-### Proposta de valor
-
-> **"Tudo o que você precisa para encontrar, organizar e acessar informações e serviços de saúde em um só lugar."**
-
----
-
-# 11. Benefícios para o Usuário
-
-O Easy Health busca proporcionar:
-
-### Praticidade
-
-Menos aplicativos e sites para consultar.
-
-### Rapidez
-
-Acesso rápido a informações e serviços.
-
-### Organização
-
-Centralização de consultas, exames e informações pessoais.
-
-### Transparência
-
-Maior visibilidade sobre preços e disponibilidade.
-
-### Acessibilidade
-
-Interface simples e fácil de utilizar.
-
-### Segurança
-
-Informações importantes disponíveis rapidamente em situações de emergência.
-
----
-
-# 12. Arquitetura Conceitual
-
-Arquitetura implementada:
-
-```text
-┌─────────────────────────────┐
-│       Easy Health App       │
-│     React Native / Expo     │
-└──────────────┬──────────────┘
-               │  HTTPS / JWT (Bearer Token)
-               ▼
-┌─────────────────────────────┐
-│      Backend (Spring Boot)  │
-│        Java 17 + REST       │
-└───────┬───────────┬─────────┘
-        │           │
-        ▼           ▼
-┌────────────┐ ┌───────────────┐
-│   MySQL    │ │ Serviços      │
-│ JDBC       │ │ Externos      │
-└────────────┘ └───────┬───────┘
-                       │
-             ┌─────────┼─────────┐
-             ▼         ▼         ▼
-       (futuro)    (futuro)    (futuro: CNES/
-       (mapas)     (IA)         DATASUS, Places)
-```
-
-Todo o backend + banco sobe com um único `docker compose up` (ver seção 23). Detalhes de cada camada em `backend/README.md` e `frontend/README.md`.
-
----
-
-# 13. Tecnologias
-
-Stack efetivamente usada no projeto:
-
-## Mobile
-
-- React Native + Expo
-- JavaScript
-- React Navigation (stack + bottom tabs)
-- axios (com interceptors de autenticação)
-- expo-location, expo-notifications, expo-secure-store, Linking (APIs nativas do Android/iOS)
-
-## Backend
-
-- Java 17
-- Spring Boot 3 + Java 17
-- REST API organizada em controllers, services, repositories e DTOs
-- JSON via Jackson, BCrypt (senhas) e tokens opacos de sessão
-
-## Banco de dados
-
-- MySQL 8.4
-
-## Infraestrutura
-
-- Docker + Docker Compose (banco + API + Adminer)
-- Git + GitHub
-- REST Client (VS Code) para testar a API manualmente (`backend/requests/`)
-- CI/CD: não implementado ainda (ver seção 21 — Status)
-
-## Serviços externos
-
-- **Ainda não integrados:** geocodificação externa, provedor de IA, CNES/DATASUS (rede pública real), Google Places (rede privada real), FCM/OneSignal (push notifications em produção).
-
----
-
-# 14. Segurança e Privacidade
-
-Como o sistema poderá lidar com dados pessoais e informações relacionadas à saúde, segurança e privacidade são requisitos fundamentais.
-
-O projeto deverá considerar:
-
-- Autenticação segura.
-- Autorização baseada em permissões.
-- Criptografia.
-- Proteção de dados pessoais.
-- Controle de acesso.
-- Logs e auditoria.
-- Backups.
-- Minimização da coleta de dados.
-- Conformidade com a LGPD.
-- Proteção específica para dados relacionados à saúde.
-
-Integrações com sistemas governamentais ou dados médicos reais somente deverão ser implementadas após análise dos requisitos legais, técnicos e de segurança aplicáveis.
-
----
-
-# 15. MVP
-
-O primeiro MVP deve concentrar-se nas funcionalidades essenciais da proposta.
-
-### Prioridade alta
-
-- [x] Cadastro e login.
-- [x] Perfil do usuário.
-- [x] Área de primeiros socorros.
-- [x] Busca por hospitais e clínicas.
-- [x] Localização dos estabelecimentos.
-- [x] Informações básicas dos estabelecimentos.
-- [x] Modo de emergência.
-
-### Prioridade média
-
-- [x] Sistema de agendamento.
-- [x] Informações de preços.
-- [x] Disponibilidade de horários.
-- [x] Filtros de pesquisa.
-- [x] Favoritos.
-
-### Prioridade futura
-
-- [x] Histórico de consultas.
-- [ ] Histórico de exames. _(rota implementada, sem tabela própria ainda — ver `backend/README.md`)_
-- [ ] Documentos médicos. _(idem)_
-- [ ] Comparação avançada de preços.
-- [ ] Integração com serviços públicos (CNES/DATASUS real).
-- [ ] Integração com estabelecimentos privados (Google Places real).
-- [ ] Integrações com sistemas oficiais (RNDS).
-
----
-
-# 16. Roadmap
-
-## Fase 1 — Fundação
-
-- [x] Definição dos requisitos.
-- [x] Definição da arquitetura.
-- [x] Prototipação da interface.
-- [x] Configuração do repositório.
-- [x] Configuração do ambiente de desenvolvimento (Docker Compose).
-- [ ] Configuração inicial do CI/CD.
-
-## Fase 2 — MVP
-
-- [x] Cadastro.
-- [x] Login.
-- [x] Perfil.
-- [x] Primeiros socorros.
-- [x] Busca por atendimento.
-- [x] Localização.
-- [x] Modo de emergência.
-
-## Fase 3 — Serviços
-
-- [x] Agendamento.
-- [x] Preços.
-- [x] Disponibilidade.
-- [ ] Comparação (avançada, entre múltiplos estabelecimentos).
-- [x] Favoritos.
-
-## Fase 4 — Organização da saúde
-
-- [x] Consultas.
-- [ ] Exames.
-- [ ] Histórico. _(consultas prontas; exames/vacinas/medicamentos ainda não)_
-- [ ] Documentos.
-- [ ] Medicamentos.
-
-## Fase 5 — Integrações
-
-- [ ] APIs externas (geocodificação e assistente de IA).
-- [ ] Estabelecimentos privados (Google Places real).
-- [ ] Serviços públicos (CNES/DATASUS real).
-- [ ] Sistemas oficiais, quando tecnicamente e legalmente possível (RNDS).
-
-## Fase 6 — Assistente de IA
-
-- [x] Navegação guiada por linguagem natural.
-- [x] Roteamento de intenções para telas do app.
-- [x] Detecção de sinais de emergência (local, no app, antes de qualquer chamada de rede).
-- [ ] Backend chamando um provedor de IA do lado do servidor.
-- [ ] Base de conhecimento (RAG) sobre funcionalidades do app — hoje o conhecimento vem só do prompt de sistema.
-
----
-
-# 17. Desenvolvimento Ágil
-
-O desenvolvimento do Easy Health deve ser realizado de maneira incremental e iterativa.
-
-O guia operacional, o backlog priorizado com histórias de usuário e os modelos
-de trabalho estão em [`docs/agile/README.md`](docs/agile/README.md). Ele define
-as cerimônias, o fluxo do quadro, a Definition of Ready (DoR), a Definition of
-Done (DoD), critérios de aceitação e a ordem sugerida das próximas Sprints.
-
-O projeto pode utilizar um fluxo baseado em:
-
-```text
-Requisitos
-    ↓
-Product Backlog
-    ↓
-Priorização
-    ↓
-Sprint
-    ↓
-Desenvolvimento
-    ↓
-Code Review
-    ↓
-Testes
-    ↓
-Deploy
-    ↓
-Feedback
-    ↓
-Retrospectiva
-    ↓
-Próxima Sprint
-```
-
-As funcionalidades devem ser divididas em **épicos, histórias de usuário e tarefas**, permitindo que o produto evolua gradualmente.
-
-Exemplo:
-
-```text
-Épico: Atendimento
-
-└── História de usuário
-    └── Como usuário,
-        quero encontrar hospitais próximos,
-        para conseguir atendimento rapidamente.
-
-        ├── Criar API de busca
-        ├── Integrar localização
-        ├── Criar tela de resultados
-        ├── Implementar filtros
-        └── Criar testes
-```
-
----
-
-# 18. Equipe e Organização do Projeto
-
-O Easy Health é desenvolvido por uma equipe de 7 pessoas, na disciplina de Empreendedorismo (IFAL), seguindo uma organização baseada em Scrum + DevOps (ver metodologia completa em `docs/distribuicao-cargos-projeto-empreendedorismo.md`).
-
-| Papel                   | Responsável                    | Frente principal                                                        |
-| ----------------------- | ------------------------------ | ----------------------------------------------------------------------- |
-| Product Owner (PO)      | Cássio                         | Define a ideia de negócio, prioriza o backlog, representa o "cliente"   |
-| Scrum Master            | Caio                           | Organiza reuniões (daily, planning, review, retro), remove impedimentos |
-| Dev Mobile 1            | Alex                           | Telas, navegação e consumo da API no app React Native                   |
-| Dev Mobile 2            | Maxuel                         | Telas, navegação e consumo da API no app React Native                   |
-| Backend                 | Isabela                        | API, banco de dados, regras de negócio, autenticação                    |
-| DevOps / Infraestrutura | João Henrique (`joaohenrique`) | Git (branches/PRs), Docker/Docker Compose, CI/CD                        |
-| UI/UX Design            | Adriel Vinicius                | Wireframes, protótipo no Figma, identidade visual                       |
-
-Em um time de 7 pessoas para 7 frentes, cada integrante assume um papel "dono" e ajuda em pelo menos uma outra frente — ninguém fica isolado só na própria função.
-
----
-
-# 19. Segurança e Responsabilidade Médica
-
-O Easy Health não substitui:
-
-- Médicos.
-- Enfermeiros.
-- Serviços de emergência.
-- Hospitais.
-- Unidades de pronto atendimento.
-- Orientação profissional.
-
-O conteúdo educativo deve ser tratado como material informativo.
-
-Especialmente na área de primeiros socorros, informações incorretas podem causar danos. Por isso, conteúdos destinados ao uso em situações reais devem passar por **validação de profissionais qualificados**.
-
----
-
-# 20. Conclusão
-
-O **Easy Health** apresenta uma proposta baseada na integração de recursos que atualmente estão distribuídos entre diferentes aplicativos, sites e serviços.
-
-A estratégia de **Oceano Azul** busca criar valor por meio da combinação de:
-
-- Informação.
-- Educação em saúde.
-- Primeiros socorros.
-- Organização de dados.
-- Busca por atendimento.
-- Transparência de preços.
-- Disponibilidade.
-- Agendamento.
-- Integração entre serviços públicos e privados.
-
-A principal oportunidade está em transformar uma jornada fragmentada em uma experiência centralizada.
-
-Dessa forma, o Easy Health busca oferecer **mais praticidade, rapidez, organização e transparência**, diferenciando-se de soluções que atuam apenas em partes específicas do ecossistema de saúde.
-
-> **Easy Health — saúde mais simples, integrada e acessível.**
-
----
-
-# 21. Status
-
-**Status:** MVP funcional (frontend + backend + infraestrutura Docker); integrações externas e recursos futuros continuam pendentes.
-
-- Frontend (React Native/Expo): todas as telas do design implementadas e conectadas ao backend, com fallback local para conteúdo de segurança (primeiros socorros) e dados de demonstração.
-- Backend (Java 17/Spring Boot/MySQL): API REST com autenticação e persistência para contas, agendamentos, favoritos e notificações; integrações externas de IA, geocodificação e agenda real ainda não estão configuradas.
-- Infraestrutura: `docker-compose.yml` sobe banco + API + UI de administração do banco com um único comando (ver seção 23).
-- Pendências: login social (OAuth real), upload de arquivos (foto de perfil, documentos médicos), geração de PDF de receita, integração com sistemas oficiais de saúde (RNDS) — ver roadmap (seção 16) e `backend/README.md`/`frontend/README.md` para o detalhamento técnico de cada pendência.
-
----
-
-# 22. Rotas de API
-
-Com base nas telas e funcionalidades mapeadas (onboarding, login, cadastro, home, primeiros socorros, busca de atendimento, modo emergência, perfil, agendamento, histórico de saúde, notificações e favoritos), o backend do Easy Health expõe as rotas REST listadas abaixo. Todas as rotas (exceto autenticação, conteúdo público e modo de emergência) exigem um token de acesso válido (Bearer Token / JWT).
-
-> **Status:** implementado em `backend/` (Spring Boot + Java + MySQL). A organização didática está em `backend/src/main/java/br/com/easyhealth`.
-
-## 22.1 Autenticação (login, cadastro, recuperação de senha)
-
-| Método | Rota                        | Descrição                                    |
-| ------ | --------------------------- | -------------------------------------------- |
-| POST   | `/api/auth/register`        | Cria uma nova conta de usuário (cadastro)    |
-| POST   | `/api/auth/login`           | Autentica o usuário e retorna o token        |
-| POST   | `/api/auth/logout`          | Invalida a sessão/token atual                |
-| POST   | `/api/auth/refresh-token`   | Gera um novo token a partir do refresh token |
-| POST   | `/api/auth/forgot-password` | Envia código/link de recuperação de senha    |
-| POST   | `/api/auth/reset-password`  | Redefine a senha usando o código enviado     |
-| POST   | `/api/auth/verify-email`    | Retorna 503 até configurar envio de e-mail   |
-
-## 22.2 Perfil do usuário
-
-| Método | Rota                         | Descrição                                  |
-| ------ | ---------------------------- | ------------------------------------------ |
-| GET    | `/api/users/me`              | Retorna os dados do usuário logado         |
-| PUT    | `/api/users/me`              | Atualiza dados do perfil (editar-perfil)   |
-| PATCH  | `/api/users/me/avatar`       | Atualiza a foto de perfil                  |
-| PUT    | `/api/users/me/password`     | Altera a senha do usuário logado           |
-| DELETE | `/api/users/me`              | Exclui a conta do usuário                  |
-| GET    | `/api/users/me/preferencias` | Retorna preferências/configurações do app  |
-| PUT    | `/api/users/me/preferencias` | Atualiza preferências/configurações do app |
-
-## 22.3 Primeiros socorros
-
-| Método | Rota                                   | Descrição                                    |
-| ------ | -------------------------------------- | -------------------------------------------- |
-| GET    | `/api/primeiros-socorros`              | Lista todos os guias de primeiros socorros   |
-| GET    | `/api/primeiros-socorros/categorias`   | Lista categorias (engasgo, queimadura, etc.) |
-| GET    | `/api/primeiros-socorros/:id`          | Retorna o detalhe de um guia específico      |
-| GET    | `/api/primeiros-socorros/busca?query=` | Busca guias por palavra-chave                |
-
-## 22.4 Busca de atendimento / Estabelecimentos
-
-| Método | Rota                                             | Descrição                                                                           |
-| ------ | ------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| GET    | `/api/estabelecimentos`                          | Lista estabelecimentos (hospitais, clínicas, UBS, UPAs, laboratórios)               |
-| GET    | `/api/estabelecimentos/busca`                    | Busca com filtros (distância, especialidade, tipo, preço, disponibilidade, horário) |
-| GET    | `/api/estabelecimentos/:id`                      | Retorna o detalhe de um estabelecimento                                             |
-| GET    | `/api/estabelecimentos/:id/especialidades`       | Lista especialidades oferecidas pelo estabelecimento                                |
-| GET    | `/api/estabelecimentos/:id/precos`               | Lista preços de consultas/serviços do estabelecimento                               |
-| GET    | `/api/estabelecimentos/:id/horarios-disponiveis?data=AAAA-MM-DD` | Lista horários futuros ainda livres na data informada                |
-| GET    | `/api/especialidades`                            | Lista geral de especialidades médicas (para filtros)                                |
-
-## 22.5 Modo de emergência
-
-| Método | Rota                                 | Descrição                                              |
-| ------ | ------------------------------------ | ------------------------------------------------------ |
-| GET    | `/api/emergencia/hospitais-proximos` | Lista hospitais/UPAs mais próximos do usuário          |
-| GET    | `/api/emergencia/contatos`           | Retorna contatos de emergência (SAMU, Bombeiros, etc.) |
-| GET    | `/api/emergencia/rotas`              | Retorna rota até o estabelecimento mais próximo        |
-
-## 22.6 Agendamento
-
-| Método | Rota                              | Descrição                                       |
-| ------ | --------------------------------- | ----------------------------------------------- |
-| GET    | `/api/agendamentos`               | Lista agendamentos futuros ativos do usuário logado |
-| POST   | `/api/agendamentos`               | Cria um agendamento; retorna 409 se o horário não estiver mais disponível |
-| GET    | `/api/agendamentos/:id`           | Retorna o detalhe/confirmação de um agendamento |
-| PUT    | `/api/agendamentos/:id`           | Reagenda (altera data/horário) um agendamento   |
-| DELETE | `/api/agendamentos/:id`           | Cancela um agendamento                          |
-| POST   | `/api/agendamentos/:id/confirmar` | Confirma o agendamento realizado                |
-
-## 22.7 Histórico de saúde
-
-| Método | Rota                            | Descrição                                      |
-| ------ | ------------------------------- | ---------------------------------------------- |
-| GET    | `/api/historico/consultas`      | Lista o histórico de consultas do usuário      |
-| GET    | `/api/historico/consultas/:id`  | Retorna o detalhe de uma consulta              |
-| POST   | `/api/historico/consultas`      | Adiciona uma consulta manualmente ao histórico |
-| GET    | `/api/historico/exames`         | Lista o histórico de exames                    |
-| GET    | `/api/historico/exames/:id`     | Retorna o detalhe/resultado de um exame        |
-| POST   | `/api/historico/exames`         | Adiciona um exame ao histórico                 |
-| GET    | `/api/historico/vacinas`        | Lista o histórico de vacinas                   |
-| GET    | `/api/historico/medicamentos`   | Lista medicamentos em uso/histórico            |
-| GET    | `/api/historico/documentos`     | Lista documentos médicos do usuário            |
-| POST   | `/api/historico/documentos`     | Faz upload de um documento médico              |
-| DELETE | `/api/historico/documentos/:id` | Remove um documento médico                     |
-
-## 22.8 Favoritos
-
-| Método | Rota                 | Descrição                                 |
-| ------ | -------------------- | ----------------------------------------- |
-| GET    | `/api/favoritos`     | Lista os estabelecimentos favoritados     |
-| POST   | `/api/favoritos`     | Adiciona um estabelecimento aos favoritos |
-| DELETE | `/api/favoritos/:id` | Remove um estabelecimento dos favoritos   |
-
-## 22.9 Notificações
-
-| Método | Rota                                   | Descrição                              |
-| ------ | -------------------------------------- | -------------------------------------- |
-| GET    | `/api/notificacoes`                    | Lista as notificações do usuário       |
-| PUT    | `/api/notificacoes/:id/lida`           | Marca uma notificação como lida        |
-| PUT    | `/api/notificacoes/marcar-todas-lidas` | Marca todas as notificações como lidas |
-| DELETE | `/api/notificacoes/:id`                | Remove uma notificação                 |
-
-## 22.10 Localização / Mapas (uso interno, integração com serviços externos)
-
-| Método | Rota                               | Descrição                                              |
-| ------ | ---------------------------------- | ------------------------------------------------------ |
-| GET    | `/api/localizacao/geocode`         | Converte endereço em coordenadas                       |
-| GET    | `/api/localizacao/reverse-geocode` | Converte coordenadas em endereço                       |
-| GET    | `/api/localizacao/distancia`       | Calcula distância entre o usuário e um estabelecimento |
-
-## 22.11 Assistente de IA
-
-Rota adicional para navegação guiada. No MVP, intenção e resposta são tratadas com regras simples, sem provedor de IA.
-
-| Método | Rota                     | Descrição                                                           |
-| ------ | ------------------------ | ------------------------------------------------------------------- |
-| POST   | `/api/assistant/message` | Envia uma mensagem do usuário e recebe uma resposta + tela sugerida |
-
-A resposta é demonstrativa. Uma integração real com um provedor deve ser adicionada posteriormente, mantendo a chave somente no servidor.
-
-> Observação: os nomes e a organização exata das rotas (versionamento como `/api/v1/...`, nomenclatura em inglês, etc.) poderão ser ajustados conforme a evolução do backend. Esta lista mapeia, a partir das telas do protótipo, todos os recursos que a API disponibiliza para o MVP e para as fases futuras do roadmap.
-
----
-
-# 23. Como Rodar o Projeto
-
-O jeito mais rápido de rodar o Easy Health inteiro (banco + backend) é via Docker Compose, na raiz do repositório:
+Na raiz do repositório, prepare o arquivo de ambiente e substitua os valores de senha:
 
 ```bash
 cp -n .env.example .env
-# substitua MYSQL_PASSWORD e MYSQL_ROOT_PASSWORD por senhas locais fortes
+```
+
+Inicie os serviços:
+
+```bash
 docker compose up --build
 ```
 
-Isso sobe:
+Endereços locais:
 
-| Serviço   | Porta padrão | O que é                         |
-| --------- | ------------ | ------------------------------- |
-| `db`      | 3306         | MySQL 8.4                       |
-| `backend` | 3333         | API REST (seção 22)             |
-| `adminer` | 8080         | UI web para inspecionar o banco |
+| Serviço             | Endereço                       |
+| ------------------- | ------------------------------ |
+| Frontend web (Expo) | `http://localhost:8081`        |
+| API                 | `http://localhost:3333`        |
+| Healthcheck da API  | `http://localhost:3333/health` |
+| Adminer             | `http://localhost:8080`        |
 
-Dentro do Compose, a API acessa o MySQL pelo nome DNS interno `db`. Esse nome não resolve fora da rede do Compose; para executar o backend diretamente na máquina, use `localhost` na `DB_URL` (veja `backend/.env.example`). Se ocorrer `UnknownHostException: db`, confira `docker compose ps` e `docker compose exec backend getent hosts db`.
+O Adminer é opcional; use `db` como servidor MySQL. Os dados do banco ficam no volume
+`easy-health-mysql-data`.
 
-No primeiro start, o Spring Boot executa `schema.sql` e `seed.sql` e popula o banco com dados de demonstração (usuário `maria.silva@email.com` / senha `senha123` e estabelecimentos de exemplo). O volume MySQL é separado do volume PostgreSQL anterior; a troca de mecanismo não migra automaticamente dados de um banco PostgreSQL existente. Detalhes em `backend/README.md` e `backend/REST-CLIENT.md`.
-
-Com o backend no ar, rode o app:
+Comandos úteis:
 
 ```bash
-cd frontend
-npm install
+docker compose ps
+docker compose logs -f backend
+docker compose up -d --build backend
+docker compose down
+```
+
+`docker compose down` preserva os dados. Evite `docker compose down -v` se precisar manter
+o conteúdo do banco.
+
+## Desenvolvimento local
+
+### Backend
+
+Configure um MySQL local e, no terminal, defina as credenciais de conexão:
+
+```bash
+export DB_URL='jdbc:mysql://localhost:3306/easyhealth?serverTimezone=UTC&characterEncoding=UTF-8'
+export DB_USER='easyhealth'
+export DB_PASSWORD='sua-senha-local'
+```
+
+Na pasta `backend/`:
+
+```bash
+mvn test
+mvn spring-boot:run
+```
+
+Para gerar o JAR:
+
+```bash
+mvn package
+```
+
+O artefato é criado em `backend/target/easy-health.jar`. Alguns testes de integração usam
+Testcontainers e precisam de Docker.
+
+### Frontend
+
+Na pasta `frontend/`:
+
+```bash
+npm ci
 npx expo start
 ```
 
-E aponte `frontend/app.json` → `expo.extra.apiUrl` para o endereço correto do backend a partir de onde o app está rodando (emulador, celular físico ou navegador têm endereços diferentes — ver `frontend/README.md`).
+Para iniciar a versão web localmente:
 
-Para testar as rotas da API isoladamente, sem precisar do app, use os arquivos em `backend/requests/` com a extensão **REST Client** do VS Code.
+```bash
+npx expo start --web
+```
 
----
+Configure a URL da API por `EXPO_PUBLIC_API_URL` ou em `frontend/app.json`, no campo
+`expo.extra.apiUrl`. O endereço depende do dispositivo: `localhost` para navegador,
+`10.0.2.2` para emulador Android e o IP local do computador para celular físico.
 
-# 24. Licença
+## Estrutura técnica
 
-Este projeto está licenciado sob a licença MIT — ver o arquivo [`LICENSE`](./LICENSE) na raiz do repositório para o texto completo.
+```text
+backend/
+  src/main/java/br/com/easyhealth/
+    config/       configuração e inicialização
+    controller/   endpoints HTTP
+    dto/          objetos de entrada e saída
+    model/        modelos de domínio
+    repository/   acesso a dados
+    service/      regras de aplicação
+  src/main/resources/
+    application.properties
+    schema.sql
+    seed.sql
+  src/test/       testes automatizados
+
+frontend/
+  src/
+    components/   componentes reutilizáveis
+    config/       configuração do aplicativo
+    data/         dados locais
+    hooks/        hooks React
+    navigation/   navegação
+    screens/      telas
+    services/     integração HTTP e serviços
+    theme/        estilos e tokens visuais
+```
+
+## Convenções de desenvolvimento
+
+- Mantenha controllers focados no protocolo HTTP; concentre regras de aplicação em services
+  e acesso ao banco em repositories.
+- Valide entradas da API nos DTOs e mantenha respostas e erros consistentes.
+- Centralize chamadas à API nos serviços do frontend; não espalhe URLs pelos componentes.
+- Nunca versione credenciais. Use `.env` local e mantenha `.env.example` sem segredos.
+- Execute os testes do backend antes de enviar mudanças; revise também a configuração Docker
+  ao alterar portas, variáveis de ambiente ou serviços.
+
+## Licença
+
+Este repositório está sob a licença MIT. Consulte [LICENSE](./LICENSE).

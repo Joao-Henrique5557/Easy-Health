@@ -14,8 +14,20 @@ Frontend mobile do Easy Health, incluindo o **Assistente de IA** (navegação gu
 
 ## Como rodar
 
-Primeiro suba o backend (veja `../backend/README.md` — resumindo, é
-`docker compose up --build` na raiz do projeto). Depois:
+Para iniciar a stack completa, execute na raiz do projeto:
+
+```bash
+docker compose up --build
+```
+
+A versão web fica em `http://localhost:8081`. Para iniciar apenas o frontend e os serviços
+de que ele depende:
+
+```bash
+docker compose up --build frontend
+```
+
+Para executar o aplicativo localmente com Expo Go:
 
 ```bash
 npm install
@@ -26,14 +38,19 @@ Escaneie o QR code com o app **Expo Go** no Android, ou pressione `a` para abrir
 
 ## Configuração da API
 
-A URL do backend fica em `app.json` → `expo.extra.apiUrl`. **O endereço certo depende de onde o
-app está rodando** — isso é a causa mais comum de "não conecta com o backend":
+A URL do backend vem de `EXPO_PUBLIC_API_URL`; sem ela, o app usa
+`app.json` → `expo.extra.apiUrl`. **O endereço certo depende de onde o app está rodando** —
+isso é a causa mais comum de "não conecta com o backend":
 
 | Onde o app roda | Use |
 | --- | --- |
 | Navegador (Expo web) ou simulador iOS | `http://localhost:3333` |
 | Emulador Android | `http://10.0.2.2:3333` (o emulador não enxerga "localhost" do seu PC) |
 | Celular físico (Expo Go ou APK) | `http://SEU_IP_LOCAL:3333`, ex: `http://192.168.0.10:3333` — descubra com `ipconfig` (Windows) ou `ifconfig`/`ip a` (Mac/Linux). O celular precisa estar na mesma rede Wi-Fi. |
+
+Para sobrescrever a URL sem alterar `app.json`, defina `EXPO_PUBLIC_API_URL` no ambiente
+ou no `.env` da raiz. O Compose usa `http://localhost:3333` (ou a porta configurada para o
+backend); em um celular físico, use o IP local da máquina.
 
 Isso vale rodando o backend via Docker ou direto com `npm run dev` — o Docker só isola o
 processo, não muda qual IP o celular usa para alcançá-lo. Detalhes e comentários adicionais em
