@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -34,10 +35,10 @@ public class ApiExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleConflict(DataIntegrityViolationException exception) {
-        return error(HttpStatus.CONFLICT, "Não foi possível salvar os dados. Verifique se o e-mail já está cadastrado.");
+        return error(HttpStatus.CONFLICT, "Não foi possível salvar os dados. O registro já existe ou referencia um item inexistente.");
     }
 
-    private static ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
+    private static ResponseEntity<Map<String, String>> error(@NonNull HttpStatus status, String message) {
         Map<String, String> body = new LinkedHashMap<>();
         body.put("error", message == null ? "Não foi possível processar a solicitação." : message);
         return ResponseEntity.status(status).body(body);

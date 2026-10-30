@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/theme/colors";
 import { fonts, radius } from "@/theme/typography";
@@ -18,14 +18,21 @@ export function Tile({
     borderRadius: radius.lg,
     padding: 16,
     opacity: pressed ? 0.85 : 1,
-    shadowColor: "#0F172A",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: {
-      width: 0,
-      height: 3
-    },
-    elevation: 1
+    ...Platform.select({
+      web: {
+        boxShadow: "0 3px 8px rgba(15, 23, 42, 0.05)"
+      },
+      default: {
+        shadowColor: "#0F172A",
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        shadowOffset: {
+          width: 0,
+          height: 3
+        },
+        elevation: 1
+      }
+    })
   })}>
       <View style={{
       width: 42,

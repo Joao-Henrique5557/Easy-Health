@@ -3,6 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 let useSecureStore = true;
+const listeners = new Set();
+const notifyTokenChange = () => {
+  listeners.forEach(listener => listener());
+};
 const testSecureStore = async () => {
   try {
     await SecureStore.setItemAsync('__test__', 'test');
@@ -13,6 +17,10 @@ const testSecureStore = async () => {
   }
 };
 export const tokenStorage = {
+  subscribe(listener) {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  },
   async init() {
     useSecureStore = await testSecureStore();
   },
@@ -26,6 +34,7 @@ export const tokenStorage = {
         [REFRESH_TOKEN_KEY, refreshToken]
       ]);
     }
+    notifyTokenChange();
   },
   async getAccessToken() {
     return useSecureStore
@@ -37,6 +46,9 @@ export const tokenStorage = {
       ? SecureStore.getItemAsync(REFRESH_TOKEN_KEY)
       : AsyncStorage.getItem(REFRESH_TOKEN_KEY);
   },
+  async hasAccessToken() {
+    return Boolean(await this.getAccessToken());
+  },
   async clear() {
     if (useSecureStore) {
       await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
@@ -44,5 +56,6 @@ export const tokenStorage = {
     } else {
       await AsyncStorage.multiRemove([ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY]);
     }
+    notifyTokenChange();
   }
 };

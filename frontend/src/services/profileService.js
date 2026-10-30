@@ -1,4 +1,5 @@
 import { api } from "./api";
+import { tokenStorage } from "./tokenStorage";
 const VISITOR_PROFILE = {
   id: "visitor",
   nome: "Visitante",
@@ -24,6 +25,9 @@ function calcularIdade(dataNascimentoISO) {
 }
 export const profileService = {
   async getMe() {
+    if (!(await tokenStorage.hasAccessToken())) {
+      return VISITOR_PROFILE;
+    }
     try {
       const {
         data

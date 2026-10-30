@@ -23,10 +23,13 @@ public class TokenRepository {
     }
 
     public Optional<String> findActiveUser(String hash, String type) {
+        // O instante atual vem do Java (e não de now()) para ser comparado no mesmo fuso em que
+        // expires_at foi gravado, independentemente do fuso configurado no servidor MySQL.
         return jdbc.query("""
                 SELECT user_id FROM auth_tokens
-                WHERE token_hash = ? AND token_type = ? AND revoked = false AND expires_at > now()
-                """, (row, index) -> row.getString("user_id"), hash, type).stream().findFirst();
+                WHERE token_hash = ? AND token_type = ? AND revoked = false AND expires_at > ?
+                """, (row, index) -> row.getString("user_id"), hash, type,
+                Timestamp.from(Instant.now())).stream().findFirst();
     }
 
     public void revoke(String hash) {

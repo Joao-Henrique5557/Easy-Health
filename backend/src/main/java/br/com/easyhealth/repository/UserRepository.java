@@ -9,6 +9,7 @@ import java.util.UUID;
 import br.com.easyhealth.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -20,7 +21,7 @@ public class UserRepository {
             contato_emergencia_telefone, contato_emergencia_parentesco
             """;
 
-    private static final RowMapper<User> USER_MAPPER = UserRepository::mapUser;
+    private static final @NonNull RowMapper<User> USER_MAPPER = UserRepository::mapUser;
     private final JdbcTemplate jdbc;
 
     public UserRepository(JdbcTemplate jdbc) {

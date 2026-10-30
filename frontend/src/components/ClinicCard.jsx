@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/theme/colors";
 import { fonts, radius } from "@/theme/typography";
+import { formatDecimal } from "@/utils/numberFormat";
 import { Pill } from "./Pill";
 const TIPO_LABEL = {
   hospital: "Hospital",
@@ -16,6 +17,8 @@ export function ClinicCard({
   onPress,
   onPressRoute
 }) {
+  const distancia = formatDecimal(item.distanciaKm);
+  const avaliacao = formatDecimal(item.avaliacao);
   return <Pressable onPress={onPress} style={{
     backgroundColor: colors.panel,
     borderRadius: radius.lg,
@@ -31,14 +34,14 @@ export function ClinicCard({
         alignItems: "center",
         gap: 8
       }}>
-          <Pill>{TIPO_LABEL[item.tipo]}</Pill>
-          <Text style={{
+          <Pill>{TIPO_LABEL[item.tipo] ?? item.tipo}</Pill>
+          {distancia ? <Text style={{
           fontFamily: fonts.regular,
           fontSize: 11.5,
           color: colors.inkSoft
         }}>
-            {item.distanciaKm.toFixed(1)} km
-          </Text>
+            {distancia} km
+          </Text> : null}
         </View>
         <View style={{
         flexDirection: "row",
@@ -51,7 +54,7 @@ export function ClinicCard({
           fontSize: 12,
           color: colors.ink
         }}>
-            {item.avaliacao.toFixed(1)}
+            {avaliacao ?? "—"}
           </Text>
         </View>
       </View>

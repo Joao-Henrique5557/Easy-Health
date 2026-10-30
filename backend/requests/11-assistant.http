@@ -1,11 +1,8 @@
 @baseUrl = http://localhost:3333
 
 ### Easy Health API — Assistente de IA (seção 6.8 do readme)
-# Rota adicional (não fazia parte da seção 21 original), criada
-# especificamente para o Assistente de IA. Exige autenticação.
-#
-# Sem ANTHROPIC_API_KEY configurada no backend, responde com uma
-# mensagem de fallback amigável em vez de dar erro.
+# Rota pública. O assistente responde por regras simples (navegação e sinais de emergência);
+# não chama nenhum provedor de IA, então não há chave de API para configurar.
 
 ### Login
 # @name login

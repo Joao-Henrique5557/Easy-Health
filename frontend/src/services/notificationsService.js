@@ -1,5 +1,6 @@
 import { api } from "./api";
 import { NOTIFICATIONS_MOCK } from "@/data/notificationsMock";
+import { tokenStorage } from "./tokenStorage";
 
 // Bug corrigido: NotificationsScreen usava NOTIFICATIONS_MOCK
 // diretamente, diferente de todas as outras telas do app (que sempre
@@ -8,6 +9,9 @@ import { NOTIFICATIONS_MOCK } from "@/data/notificationsMock";
 // reais. Este service resolve essa inconsistência.
 export const notificationsService = {
   async list() {
+    if (!(await tokenStorage.hasAccessToken())) {
+      return NOTIFICATIONS_MOCK;
+    }
     try {
       const {
         data

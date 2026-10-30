@@ -4,6 +4,7 @@ import java.sql.Date;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -22,12 +23,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class PersonalDataController {
+    private static final ZoneId BRAZIL_ZONE = ZoneId.of("America/Sao_Paulo");
+
     private final JdbcTemplate jdbc;
     private final AuthService auth;
 
@@ -39,8 +41,8 @@ public class PersonalDataController {
     @GetMapping("/api/agendamentos")
     public List<Map<String, Object>> bookings(HttpServletRequest request) {
         String userId = auth.requireUserId(request);
-        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo"));
-        LocalTime now = LocalTime.now(java.time.ZoneId.of("America/Sao_Paulo"));
+        LocalDate today = LocalDate.now(BRAZIL_ZONE);
+        LocalTime now = LocalTime.now(BRAZIL_ZONE);
         return jdbc.query("""
                 SELECT a.id, a.user_id, a.establishment_id, e.nome AS establishment_name,
                     a.especialidade, a.data, a.horario, a.status
@@ -64,21 +66,8 @@ public class PersonalDataController {
         String specialty = required(body, "especialidade");
         LocalDate date = parseDate(required(body, "data"));
         LocalTime time = parseTime(required(body, "horario"));
-        LocalDate today = LocalDate.now(java.time.ZoneId.of("America/Sao_Paulo"));
-        if (date.isBefore(today)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível agendar em uma data passada.");
-        }
-        String slot = time.format(DateTimeFormatter.ofPattern("HH:mm"));
-        if (time.getSecond() != 0 || time.getNano() != 0 || !AppointmentAvailability.isSlot(slot)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horário indisponível.");
-        }
-        try {
-            jdbc.queryForObject("SELECT id FROM establishments WHERE id = ? FOR UPDATE", String.class,
-                    establishmentId);
-        } catch (org.springframework.dao.EmptyResultDataAccessException exception) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Estabelecimento não encontrado ou agendamento inválido.");
-        }
+        String slot = requireBookableSlot(date, time);
+        lockEstablishment(establishmentId);
         if (!AppointmentAvailability.forDate(jdbc, establishmentId, date, true).contains(slot)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "Este horário não está mais disponível. Escolha outro horário.");
@@ -102,19 +91,31 @@ public class PersonalDataController {
     }
 
     @PutMapping("/api/agendamentos/{id}")
+    @Transactional
     public Map<String, Object> updateBooking(HttpServletRequest request, @PathVariable String id,
             @RequestBody Map<String, Object> body) {
         String userId = auth.requireUserId(request);
         Map<String, Object> existing = findBooking(id, userId);
-        LocalDate date = body.containsKey("data")
-                ? parseDate(required(body, "data"))
-                : LocalDate.parse(existing.get("data").toString());
-        LocalTime time = body.containsKey("horario")
-                ? parseTime(required(body, "horario"))
-                : LocalTime.parse(existing.get("horario").toString());
+        if (!isActive(existing.get("status"))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este agendamento não pode mais ser alterado.");
+        }
+        LocalDate currentDate = LocalDate.parse(existing.get("data").toString());
+        LocalTime currentTime = LocalTime.parse(existing.get("horario").toString());
+        LocalDate date = body.containsKey("data") ? parseDate(required(body, "data")) : currentDate;
+        LocalTime time = body.containsKey("horario") ? parseTime(required(body, "horario")) : currentTime;
+        if (date.equals(currentDate) && time.equals(currentTime)) {
+            return existing;
+        }
+        String slot = requireBookableSlot(date, time);
+        String establishmentId = existing.get("establishmentId").toString();
+        lockEstablishment(establishmentId);
+        if (!AppointmentAvailability.forDate(jdbc, establishmentId, date, true).contains(slot)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Este horário não está mais disponível. Escolha outro horário.");
+        }
         jdbc.update("""
                 UPDATE appointments SET data = ?, horario = ?
-                WHERE id = ? AND user_id = ? AND status <> 'cancelado'
+                WHERE id = ? AND user_id = ?
                 """, Date.valueOf(date), Time.valueOf(time), id, userId);
         return findBooking(id, userId);
     }
@@ -133,7 +134,9 @@ public class PersonalDataController {
     @DeleteMapping("/api/agendamentos/{id}")
     public void cancelBooking(HttpServletRequest request, @PathVariable String id) {
         String userId = auth.requireUserId(request);
-        findBooking(id, userId);
+        if ("concluido".equals(findBooking(id, userId).get("status"))) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Consultas concluídas não podem ser canceladas.");
+        }
         jdbc.update("UPDATE appointments SET status = 'cancelado' WHERE id = ? AND user_id = ?",
                 id, userId);
     }
@@ -166,6 +169,11 @@ public class PersonalDataController {
             @RequestBody Map<String, Object> body) {
         String userId = auth.requireUserId(request);
         String establishmentId = required(body, "estabelecimentoId");
+        Integer found = jdbc.queryForObject(
+                "SELECT count(*) FROM establishments WHERE id = ?", Integer.class, establishmentId);
+        if (found == null || found == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Estabelecimento não encontrado.");
+        }
         jdbc.update("""
                 INSERT INTO favorites (user_id, establishment_id)
                 VALUES (?, ?) AS incoming
@@ -263,6 +271,33 @@ public class PersonalDataController {
     public List<Map<String, Object>> emptyHealthHistory(HttpServletRequest request) {
         auth.requireUserId(request);
         return List.of();
+    }
+
+    private static boolean isActive(Object status) {
+        return "agendado".equals(status) || "confirmado".equals(status);
+    }
+
+    /** Valida data e horário de um agendamento e devolve o horário no formato HH:mm. */
+    private static String requireBookableSlot(LocalDate date, LocalTime time) {
+        if (date.isBefore(LocalDate.now(BRAZIL_ZONE))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Não é possível agendar em uma data passada.");
+        }
+        String slot = time.format(DateTimeFormatter.ofPattern("HH:mm"));
+        if (time.getSecond() != 0 || time.getNano() != 0 || !AppointmentAvailability.isSlot(slot)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Horário indisponível.");
+        }
+        return slot;
+    }
+
+    /** Trava a linha do estabelecimento para serializar agendamentos concorrentes no mesmo local. */
+    private void lockEstablishment(String establishmentId) {
+        try {
+            jdbc.queryForObject("SELECT id FROM establishments WHERE id = ? FOR UPDATE", String.class,
+                    establishmentId);
+        } catch (org.springframework.dao.EmptyResultDataAccessException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Estabelecimento não encontrado ou agendamento inválido.");
+        }
     }
 
     private Map<String, Object> findBooking(String id, String userId) {

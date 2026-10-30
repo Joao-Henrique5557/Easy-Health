@@ -1,6 +1,6 @@
 # Backend do Easy Health
 
-API REST didática feita com **Spring Boot 3**, **Java 17**, **MySQL 8.4** e `JdbcTemplate`. Os controllers cuidam das rotas HTTP, os services concentram autenticação e regras simples, e os repositories organizam as consultas ao banco.
+API REST didática feita com **Spring Boot 3.5**, **Java 25**, **MySQL 8.4** e `JdbcTemplate`. Os controllers cuidam das rotas HTTP, os services concentram autenticação e regras simples, e os repositories organizam as consultas ao banco.
 
 ## Executar com Docker (recomendado)
 
@@ -52,7 +52,7 @@ mvn test
 mvn spring-boot:run
 ```
 
-O teste de inicialização usa um container MySQL via Testcontainers; ele é ignorado quando Docker não está disponível. Para gerar o JAR executável, use `mvn package`; o arquivo fica em `target/easy-health.jar`. Java 17 ou superior e Maven 3.9+ são necessários.
+O teste de inicialização usa um container MySQL via Testcontainers; ele é ignorado quando Docker não está disponível. Para gerar o JAR executável, use `mvn package`; o arquivo fica em `target/easy-health.jar`. Java 25 ou superior e Maven 3.9+ são necessários.
 
 ## Banco de dados e migração
 

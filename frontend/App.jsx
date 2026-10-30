@@ -40,8 +40,14 @@ export default function App() {
       }
     }
     restoreSession();
+    const unsubscribe = authService.subscribe(async () => {
+      const loggedIn = await authService.isAuthenticated();
+      setIsAuthenticated(loggedIn);
+      if (!loggedIn) setIsGuest(false);
+    });
     return () => {
       mounted = false;
+      unsubscribe();
     };
   }, []);
   useEffect(() => {

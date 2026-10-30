@@ -6,7 +6,7 @@ O projeto já possui exemplos prontos na pasta `backend/requests`. A extensão *
 
 1. Instale a extensão **REST Client** no VS Code.
 2. Inicie a aplicação com `docker compose up --build`.
-3. Abra um arquivo `.http` e escolha o ambiente `dev` no seletor de ambiente do VS Code. A configuração fica em `http-client.env.json` na raiz do projeto e a variável `baseUrl` aponta para `http://localhost:3333`.
+3. Abra um arquivo `.http`. O endereço da API está na variável `@baseUrl`, no topo de cada arquivo (`http://localhost:3333`), então não é preciso escolher ambiente. O `http-client.env.json` é lido apenas pelo HTTP Client do JetBrains; o REST Client do VS Code o ignora.
 4. Clique em **Send Request** acima de uma requisição.
 
 ## Login e token
@@ -32,6 +32,7 @@ Cada bloco iniciado por `###` é uma requisição independente. Os comentários 
 ## Erros comuns
 
 - **404**: confira se está usando `http://localhost:3333`, não a porta do Adminer.
-- **401**: execute o login no mesmo arquivo antes das chamadas protegidas.
+- **401**: execute o login no mesmo arquivo antes das chamadas protegidas. Trocar a senha ou fazer logout revoga todas as sessões; faça login de novo depois.
+- **400 "data passada" ou lista de horários vazia**: use uma data futura. Os exemplos de agendamento usam a variável `@bookingDate` (hoje + 7 dias).
 - **Falha no banco**: verifique `docker compose logs backend` e aguarde o healthcheck do MySQL.
 - **Mudança não aparece**: reinicie o container com `docker compose up --build`.

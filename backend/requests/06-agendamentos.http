@@ -1,4 +1,7 @@
 @baseUrl = http://localhost:3333
+# Data de teste = hoje + 7 dias, calculada a cada envio (datas fixas vencem e a API recusa datas passadas).
+# Se a sua extensão não calcular, troque por uma data futura escrita à mão, no formato AAAA-MM-DD.
+@bookingDate = {{$datetime "YYYY-MM-DD" 7 d}}
 
 ### Easy Health API — Agendamentos (seção 21.6 do readme)
 # Todas exigem autenticação.
@@ -24,7 +27,7 @@ Content-Type: application/json
 {
   "establishmentId": "hosp-sao-lucas",
   "especialidade": "Cardiologia",
-  "data": "2026-09-20",
+  "data": "{{bookingDate}}",
   "horario": "10:00"
 }
 
@@ -32,6 +35,7 @@ Content-Type: application/json
 GET {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}?accessToken={{login.response.body.$.accessToken}}
 
 ### Reagendar (mudar data/horário)
+# Aplica as mesmas regras da criação: o horário precisa ser um dos oferecidos e estar livre.
 PUT {{baseUrl}}/api/agendamentos/{{createBooking.response.body.$.id}}?accessToken={{login.response.body.$.accessToken}}
 Content-Type: application/json
 

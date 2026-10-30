@@ -16,6 +16,7 @@ services:
       - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - easy-health-mysql-data:/var/lib/mysql
+      - ./docs/SQL:/docker-entrypoint-initdb.d:ro
     # O backend aguarda o banco aceitar conexões antes de iniciar.
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --user=\"$${MYSQL_USER}\" --password=\"$${MYSQL_PASSWORD}\" --silent"]

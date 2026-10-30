@@ -5,10 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import java.util.List;
-import java.util.Map;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import javax.sql.DataSource;
 
 import br.com.easyhealth.controller.CatalogController;
@@ -29,8 +30,9 @@ class MySqlDatabaseInitializationTest {
         MySQLContainer<?> mysql = null;
         DataSource dataSource;
         if (externalUrl != null && !externalUrl.isBlank()) {
-            dataSource = new DriverManagerDataSource(externalUrl,
-                    System.getenv("MYSQL_TEST_DB_USER"), System.getenv("MYSQL_TEST_DB_PASSWORD"));
+            dataSource = new DriverManagerDataSource(Objects.requireNonNull(externalUrl),
+                    Objects.requireNonNullElse(System.getenv("MYSQL_TEST_DB_USER"), ""),
+                    Objects.requireNonNullElse(System.getenv("MYSQL_TEST_DB_PASSWORD"), ""));
         } else {
             mysql = new MySQLContainer<>("mysql:8.4");
             try {
@@ -40,27 +42,29 @@ class MySqlDatabaseInitializationTest {
                 return;
             }
             dataSource = new DriverManagerDataSource(
-                    mysql.getJdbcUrl(), mysql.getUsername(), mysql.getPassword());
+                    Objects.requireNonNull(mysql.getJdbcUrl()),
+                    Objects.requireNonNull(mysql.getUsername()),
+                    Objects.requireNonNull(mysql.getPassword()));
         }
 
         boolean schemaInitialized = false;
         try {
-            JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+            JdbcTemplate jdbc = new JdbcTemplate(Objects.requireNonNull(dataSource));
             ResourceDatabasePopulator schema = new ResourceDatabasePopulator(
                     new ClassPathResource("schema.sql"));
-            schema.execute(dataSource);
-            schema.execute(dataSource);
+            schema.execute(Objects.requireNonNull(dataSource));
+            schema.execute(Objects.requireNonNull(dataSource));
             schemaInitialized = true;
 
-            DatabaseInitializer initializer = new DatabaseInitializer(dataSource);
+            DatabaseInitializer initializer = new DatabaseInitializer(Objects.requireNonNull(dataSource));
             initializer.run(new DefaultApplicationArguments(new String[0]));
             assertEquals(1, jdbc.queryForObject(
                     "SELECT count(*) FROM users WHERE email = 'maria.silva@email.com'", Integer.class));
             assertEquals(3, jdbc.queryForObject("SELECT count(*) FROM establishments", Integer.class));
             assertEquals(4, jdbc.queryForObject("SELECT count(*) FROM first_aid_guides", Integer.class));
-            assertTrue(jdbc.queryForObject(
-                    "SELECT especialidades FROM establishments WHERE id = 'hosp-sao-lucas'", String.class)
-                    .contains("Cardiologia"));
+            String specialties = Objects.requireNonNull(jdbc.queryForObject(
+                    "SELECT especialidades FROM establishments WHERE id = 'hosp-sao-lucas'", String.class));
+            assertTrue(specialties.contains("Cardiologia"));
 
             jdbc.update("""
                     INSERT INTO users (id, nome, email, senha_hash)

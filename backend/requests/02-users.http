@@ -37,15 +37,6 @@ Content-Type: application/json
   "avatarUrl": "https://exemplo.com/foto.jpg"
 }
 
-### Alterar senha
-PUT {{baseUrl}}/api/users/me/password?accessToken={{login.response.body.$.accessToken}}
-Content-Type: application/json
-
-{
-  "senhaAtual": "senha123",
-  "novaSenha": "senha123"
-}
-
 ### Registrar token de push (usado por expo-notifications no app)
 POST {{baseUrl}}/api/users/me/push-token?accessToken={{login.response.body.$.accessToken}}
 Content-Type: application/json
@@ -59,3 +50,14 @@ GET {{baseUrl}}/api/users/me/preferencias?accessToken={{login.response.body.$.ac
 
 ### Excluir minha conta (cuidado — irreversível)
 # DELETE {{baseUrl}}/api/users/me
+
+### Alterar senha (deixe por último)
+# Revoga todas as sessões do usuário: depois dela, o token do login acima deixa de valer (401).
+# Mantém a mesma senha só para não quebrar a conta de demonstração.
+PUT {{baseUrl}}/api/users/me/password?accessToken={{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "senhaAtual": "senha123",
+  "novaSenha": "senha123"
+}

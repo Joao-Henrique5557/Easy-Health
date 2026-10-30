@@ -19,11 +19,12 @@ export function ToastProvider({
   }), [showToast]);
   return <ToastContext.Provider value={value}>
       {children}
-      {toast && <View pointerEvents="box-none" style={{
+      {toast && <View style={{
       position: "absolute",
       left: 16,
       right: 16,
-      bottom: 24
+      bottom: 24,
+      pointerEvents: "box-none"
     }}>
           <Pressable onPress={() => setToast(null)} style={{
         backgroundColor: toast.kind === "success" ? colors.primary : colors.ink,

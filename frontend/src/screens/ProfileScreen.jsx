@@ -35,8 +35,6 @@ export function ProfileScreen() {
       style: "destructive",
       onPress: async () => {
         await authService.logout();
-        // A navegação de volta ao Login é tratada pelo listener de
-        // autenticação no App.jsx, que observa o token armazenado.
       }
     }]);
   }

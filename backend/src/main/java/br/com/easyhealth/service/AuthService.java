@@ -135,8 +135,9 @@ public class AuthService {
     public void resetPassword(String code, String newPassword) {
         var codes = jdbc.query("""
                 SELECT user_id FROM password_reset_codes
-                WHERE code_hash = ? AND used = false AND expires_at > now()
-                """, (row, index) -> row.getString("user_id"), hash(code));
+                WHERE code_hash = ? AND used = false AND expires_at > ?
+                """, (row, index) -> row.getString("user_id"), hash(code),
+                java.sql.Timestamp.from(Instant.now()));
         if (codes.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Código inválido ou expirado.");
         }

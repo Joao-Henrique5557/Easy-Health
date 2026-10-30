@@ -37,8 +37,8 @@ Content-Type: application/json
 }
 
 ### Esqueci minha senha
-# O código de recuperação é impresso no console do backend (não há
-# serviço de e-mail real neste protótipo acadêmico).
+# Não há serviço de e-mail. O código só aparece no log do backend se RESET_CODE_LOG_ENABLED=true
+# (use apenas em desenvolvimento). Ele vale por 15 minutos.
 POST {{baseUrl}}/api/auth/forgot-password
 Content-Type: application/json
 
@@ -55,7 +55,7 @@ Content-Type: application/json
   "novaSenha": "novaSenha123"
 }
 
-### Verificar e-mail (troque "codigo" pelo valor impresso no console do backend)
+### Verificar e-mail (ainda não implementado: responde 503 até existir um serviço de envio)
 POST {{baseUrl}}/api/auth/verify-email
 Content-Type: application/json
 

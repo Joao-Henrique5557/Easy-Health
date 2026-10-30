@@ -1,5 +1,5 @@
-# Etapa de build: compila a API usando Maven e Java 17.
-FROM maven:3.9-eclipse-temurin-17 AS build
+# Etapa de build: compila a API usando Maven e Java 25.
+FROM maven:3.9-eclipse-temurin-25 AS build
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY src ./src
 RUN mvn -B -DskipTests package
 
 # Etapa final: a imagem de execução contém somente o Java e o JAR da aplicação.
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 # O healthcheck do Compose usa curl para consultar a rota de saúde da API.
 RUN apk add --no-cache curl \

@@ -1,7 +1,7 @@
 @baseUrl = http://localhost:3333
 
 ### Easy Health API — Notificações (seção 21.9 do readme)
-# Todas exigem autenticação. Já vêm populadas pelo seed.
+# Todas exigem autenticação. A notificação de boas-vindas é criada na primeira listagem do usuário.
 
 ### Login
 # @name login

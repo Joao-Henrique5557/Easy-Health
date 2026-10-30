@@ -3,10 +3,12 @@ package br.com.easyhealth.controller;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -134,7 +136,8 @@ public class CatalogController {
     public List<Map<String, Object>> nearbyHospitals(
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude) {
-        return searchEstablishments(latitude, longitude, "todos", null, null).stream()
+        Stream<Map<String, Object>> hospitals = searchEstablishments(latitude, longitude, "todos", null, null)
+                .stream()
                 .filter(place -> "hospital".equals(place.get("tipo")) || "upa".equals(place.get("tipo")))
                 .map(place -> {
                     Map<String, Object> hospital = new LinkedHashMap<>();
@@ -146,7 +149,13 @@ public class CatalogController {
                     hospital.put("distanciaKm", place.getOrDefault("distanciaKm", 0.0));
                     hospital.put("aberto24h", true);
                     return hospital;
-                }).toList();
+                });
+        if (latitude != null && longitude != null) {
+            // "Próximos": do mais perto para o mais longe (sem coordenadas, mantém a ordem por nome).
+            hospitals = hospitals.sorted(Comparator.<Map<String, Object>>comparingDouble(
+                    hospital -> ((Number) hospital.get("distanciaKm")).doubleValue()));
+        }
+        return hospitals.toList();
     }
 
     @GetMapping("/api/emergencia/rotas")
@@ -233,7 +242,7 @@ public class CatalogController {
         place.put("tipo", type);
         place.put("redeAtendimento", row.getString("rede_atendimento"));
         place.put("endereco", address);
-        place.put("avaliacao", row.getDouble("avaliacao"));
+        place.put("avaliacao", row.getObject("avaliacao", Double.class));
         place.put("avaliacoesCount", row.getObject("avaliacoes_count", Integer.class));
         place.put("status", status);
         place.put("statusLabel", row.getString("status_label"));
@@ -257,9 +266,12 @@ public class CatalogController {
     private static Map<String, Object> withDistance(Map<String, Object> place,
             Double latitude, Double longitude) {
         Map<String, Object> result = new LinkedHashMap<>(place);
-        if (latitude != null && longitude != null) {
+        if (latitude != null && longitude != null
+                && place.get("latitude") instanceof Number
+                && place.get("longitude") instanceof Number) {
             double distance = distanceKm(latitude, longitude,
-                    (double) place.get("latitude"), (double) place.get("longitude"));
+                    ((Number) place.get("latitude")).doubleValue(),
+                    ((Number) place.get("longitude")).doubleValue());
             result.put("distanciaKm", Math.round(distance * 10.0) / 10.0);
         }
         return result;

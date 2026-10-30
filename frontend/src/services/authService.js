@@ -1,6 +1,9 @@
 import { api } from "./api";
 import { tokenStorage } from "./tokenStorage";
 export const authService = {
+  subscribe(listener) {
+    return tokenStorage.subscribe(listener);
+  },
   async register(payload) {
     const {
       data
@@ -17,7 +20,9 @@ export const authService = {
   },
   async logout() {
     try {
-      await api.post("/api/auth/logout");
+      if (await tokenStorage.hasAccessToken()) {
+        await api.post("/api/auth/logout");
+      }
     } finally {
       await tokenStorage.clear();
     }
@@ -34,6 +39,6 @@ export const authService = {
     });
   },
   async isAuthenticated() {
-    return Boolean(await tokenStorage.getAccessToken());
+    return tokenStorage.hasAccessToken();
   }
 };

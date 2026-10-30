@@ -1,54 +1,34 @@
 import { api } from "./api";
 import { HISTORY_MOCK } from "@/data/historyMock";
+import { tokenStorage } from "./tokenStorage";
+async function loadIfAuthenticated(path, fallback) {
+  if (!(await tokenStorage.hasAccessToken())) {
+    return fallback;
+  }
+  try {
+    const {
+      data
+    } = await api.get(path);
+    return data;
+  } catch {
+    return fallback;
+  }
+}
 export const historyService = {
   async listConsultas() {
-    try {
-      const {
-        data
-      } = await api.get("/api/historico/consultas");
-      return data;
-    } catch {
-      return HISTORY_MOCK;
-    }
+    return loadIfAuthenticated("/api/historico/consultas", HISTORY_MOCK);
   },
   async getConsultaById(id) {
-    try {
-      const {
-        data
-      } = await api.get(`/api/historico/consultas/${id}`);
-      return data;
-    } catch {
-      return HISTORY_MOCK.find(c => c.id === id);
-    }
+    const consultas = await loadIfAuthenticated(`/api/historico/consultas/${id}`, HISTORY_MOCK.find(c => c.id === id));
+    return consultas;
   },
   async listExames() {
-    try {
-      const {
-        data
-      } = await api.get("/api/historico/exames");
-      return data;
-    } catch {
-      return [];
-    }
+    return loadIfAuthenticated("/api/historico/exames", []);
   },
   async listVacinas() {
-    try {
-      const {
-        data
-      } = await api.get("/api/historico/vacinas");
-      return data;
-    } catch {
-      return [];
-    }
+    return loadIfAuthenticated("/api/historico/vacinas", []);
   },
   async listMedicamentos() {
-    try {
-      const {
-        data
-      } = await api.get("/api/historico/medicamentos");
-      return data;
-    } catch {
-      return [];
-    }
+    return loadIfAuthenticated("/api/historico/medicamentos", []);
   }
 };

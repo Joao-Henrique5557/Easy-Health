@@ -97,7 +97,7 @@ export function EstablishmentDetailScreen() {
       gap: 8,
       marginBottom: 6
     }}>
-        <Pill>{item.tipo === "hospital" ? "Hospital" : item.tipo.toUpperCase()}</Pill>
+        <Pill>{item.tipo === "hospital" ? "Hospital" : (item.tipo ?? "").toUpperCase() || "Unidade"}</Pill>
         <View style={{
         flexDirection: "row",
         alignItems: "center",
@@ -109,7 +109,7 @@ export function EstablishmentDetailScreen() {
           fontSize: 12,
           color: colors.ink
         }}>
-            {item.avaliacao.toFixed(1)} {item.avaliacoesCount ? `(${item.avaliacoesCount} avaliações)` : ""}
+            {Number.isFinite(Number(item.avaliacao)) ? Number(item.avaliacao).toFixed(1) : "—"} {item.avaliacoesCount ? `(${item.avaliacoesCount} avaliações)` : ""}
           </Text>
         </View>
       </View>

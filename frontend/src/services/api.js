@@ -33,6 +33,11 @@ api.interceptors.response.use(response => response, async error => {
   if (error.response?.status !== 401 || !original || original._retry || isAuthRequest) {
     return Promise.reject(error);
   }
+  if (!(await tokenStorage.getRefreshToken())) {
+    await tokenStorage.clear();
+    return Promise.reject(error);
+  }
+  original._retry = true;
   if (isRefreshing) {
     return new Promise((resolve, reject) => {
       pendingQueue.push({ resolve, reject });
@@ -42,7 +47,6 @@ api.interceptors.response.use(response => response, async error => {
     });
   }
   isRefreshing = true;
-  original._retry = true;
   try {
     const refreshToken = await tokenStorage.getRefreshToken();
     if (!refreshToken) throw error;

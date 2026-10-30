@@ -1,4 +1,7 @@
 @baseUrl = http://localhost:3333
+# Data de teste = hoje + 7 dias, calculada a cada envio (datas fixas vencem e a API recusa datas passadas).
+# Se a sua extensão não calcular, troque por uma data futura escrita à mão, no formato AAAA-MM-DD.
+@bookingDate = {{$datetime "YYYY-MM-DD" 7 d}}
 
 ### Easy Health API — Estabelecimentos de saúde (seção 21.4 do readme)
 # Conteúdo público — equivalente a uma busca no mapa, não exige autenticação.
@@ -22,7 +25,7 @@ GET {{baseUrl}}/api/estabelecimentos/hosp-sao-lucas/especialidades
 GET {{baseUrl}}/api/estabelecimentos/hosp-sao-lucas/precos
 
 ### Horários disponíveis em uma data (Tela "Agendar Consulta")
-GET {{baseUrl}}/api/estabelecimentos/hosp-sao-lucas/horarios-disponiveis?data=2026-09-15
+GET {{baseUrl}}/api/estabelecimentos/hosp-sao-lucas/horarios-disponiveis?data={{bookingDate}}
 
 ### Lista geral de especialidades (para filtros)
 GET {{baseUrl}}/api/especialidades

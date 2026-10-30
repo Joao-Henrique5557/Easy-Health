@@ -1,7 +1,12 @@
 import { api } from "./api";
+import { tokenStorage } from "./tokenStorage";
 let localFavoriteIds = new Set();
 export const favoritesService = {
   async list() {
+    if (!(await tokenStorage.hasAccessToken())) {
+      localFavoriteIds = new Set();
+      return [];
+    }
     const { data } = await api.get("/api/favoritos");
     localFavoriteIds = new Set(data.map(establishment => establishment.id));
     return data;

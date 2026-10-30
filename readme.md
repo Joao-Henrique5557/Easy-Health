@@ -5,7 +5,7 @@ Guia técnico para configurar, executar e testar o código do repositório.
 ## Stack
 
 - **Frontend:** React Native, Expo 51 e JavaScript; Expo também serve a versão web.
-- **Backend:** Java 17, Spring Boot 3.4 e JDBC.
+- **Backend:** Java 25, Spring Boot 3.5 e JDBC.
 - **Banco de dados:** MySQL 8.4.
 - **Ambiente local:** Docker Compose.
 
@@ -13,7 +13,7 @@ Guia técnico para configurar, executar e testar o código do repositório.
 
 - Git.
 - Docker com Docker Compose.
-- Para desenvolvimento sem Docker: Node.js 20+ e npm; Java 17+ e Maven 3.9+.
+- Para desenvolvimento sem Docker: Node.js 20+ e npm; Java 25+ e Maven 3.9+.
 
 ## Executar com Docker
 
@@ -39,7 +39,14 @@ Endereços locais:
 | Adminer             | `http://localhost:8080`        |
 
 O Adminer é opcional; use `db` como servidor MySQL. Os dados do banco ficam no volume
-`easy-health-mysql-data`.
+`easy-health-mysql-data`. Na primeira inicialização desse volume, o Compose executa os
+scripts de [docs/SQL](./docs/SQL): `MYSQL_DATABASE` recebe as tabelas e os dados de
+demonstração do app, e o banco `easyhealth_institutions` recebe um catálogo fictício de
+instituições parceiras. O usuário MySQL da aplicação recebe acesso somente de leitura a
+esse catálogo; os registros não representam integrações ativas com APIs externas.
+O MySQL só executa esses scripts automaticamente quando o volume de dados está vazio;
+para bancos já existentes, aplique-os manualmente ou use um volume novo se puder descartar
+os dados atuais.
 
 Comandos úteis:
 
