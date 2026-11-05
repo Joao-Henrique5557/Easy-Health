@@ -49,10 +49,10 @@ validados de forma concreta, não só visualmente — ver seção "Como foi vali
 - **Home**: reescrita com avatar + saudação, sino de notificações, banner
   de emergência compacto, busca, grade de "Serviços Integrados" e seção
   "Próximas Consultas" — nada disso existia na versão anterior.
-- Dados de demonstração (`src/data/*Mock.ts`) com os mesmos nomes/valores
-  do design (Hospital São Lucas, Dr. Carlos Mendes etc.), usados como
-  fallback automático sempre que uma chamada à API falha — o app fica
-  navegável e visualmente fiel ao protótipo mesmo sem o backend pronto.
+- Os guias de primeiros socorros são servidos pelo JSON local do frontend.
+  O catálogo de instituições vem da API e do banco de demonstração separado;
+  o app não mantém um catálogo local duplicado nem exibe dados de exemplo
+  quando a API falha.
 
 ## Como foi validado (não só "parece certo")
 

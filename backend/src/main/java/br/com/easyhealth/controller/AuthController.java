@@ -3,11 +3,13 @@ package br.com.easyhealth.controller;
 import java.util.Map;
 
 import br.com.easyhealth.dto.ForgotPasswordRequest;
+import br.com.easyhealth.dto.GoogleAuthRequest;
 import br.com.easyhealth.dto.LoginRequest;
 import br.com.easyhealth.dto.RefreshTokenRequest;
 import br.com.easyhealth.dto.RegisterRequest;
 import br.com.easyhealth.dto.ResetPasswordRequest;
 import br.com.easyhealth.service.AuthService;
+import br.com.easyhealth.service.GoogleTokenVerifier;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -21,9 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService auth;
+    private final GoogleTokenVerifier googleTokens;
 
-    public AuthController(AuthService auth) {
+    public AuthController(AuthService auth, GoogleTokenVerifier googleTokens) {
         this.auth = auth;
+        this.googleTokens = googleTokens;
     }
 
     @PostMapping("/register")
@@ -34,6 +38,11 @@ public class AuthController {
     @PostMapping("/login")
     public Map<String, Object> login(@Valid @RequestBody LoginRequest request) {
         return auth.login(request);
+    }
+
+    @PostMapping("/google")
+    public Map<String, Object> googleLogin(@Valid @RequestBody GoogleAuthRequest request) {
+        return auth.loginWithGoogle(googleTokens.verify(request.idToken()));
     }
 
     @PostMapping("/refresh-token")

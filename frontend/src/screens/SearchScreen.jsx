@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, TextInput, View } from "react-native";
+import { AppAlert as Alert } from "@/services/appAlert";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import { colors } from "@/theme/colors";
@@ -36,15 +37,21 @@ export function SearchScreen() {
   const [query, setQuery] = useState(route.params?.query ?? "");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   useEffect(() => {
     setLoading(true);
+    setLoadError(false);
     establishmentsService.search({
       latitude: coords?.latitude,
       longitude: coords?.longitude,
       tipo: filtro,
       query: query || undefined,
       raioKm: coords ? 10 : undefined
-    }).then(setResults).finally(() => setLoading(false));
+    }).then(setResults).catch(error => {
+      console.error("Não foi possível carregar os estabelecimentos.", error);
+      setResults([]);
+      setLoadError(true);
+    }).finally(() => setLoading(false));
   }, [coords, filtro, query]);
   async function handleRoute(item) {
     try {
@@ -127,7 +134,13 @@ export function SearchScreen() {
         Resultados Próximos
       </Text>
 
-      {loading ? <ActivityIndicator color={colors.primary} /> : results.length === 0 ? <Text style={{
+      {loading ? <ActivityIndicator color={colors.primary} /> : loadError ? <Text style={{
+      fontFamily: fonts.regular,
+      fontSize: 12.5,
+      color: colors.inkSoft
+    }}>
+          Não foi possível carregar os estabelecimentos. Verifique a conexão e tente novamente.
+        </Text> : results.length === 0 ? <Text style={{
       fontFamily: fonts.regular,
       fontSize: 12.5,
       color: colors.inkSoft

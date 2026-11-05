@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { AppAlert as Alert } from '@/services/appAlert';
 import { useNavigation } from '@react-navigation/native';
 import { authService } from '../services/authService';
 import { getErrorMessage } from '../utils/apiError';
+import { GoogleSignInButton } from '@/components/GoogleSignInButton';
 const RegisterScreen = ({
   navigation: passedNavigation,
   route,
   onAuthenticated: propOnAuthenticated
 }) => {
-  const navigation = passedNavigation ?? useNavigation();
+  const defaultNavigation = useNavigation();
+  const navigation = passedNavigation ?? defaultNavigation;
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -71,6 +74,9 @@ const RegisterScreen = ({
       <TouchableOpacity style={[styles.button, loading && styles.disabled]} onPress={handleRegister} disabled={loading}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Registrar</Text>}
       </TouchableOpacity>
+      <GoogleSignInButton onAuthenticated={onAuthenticated ?? (() => navigation.navigate('MainTabs', {
+        screen: 'Home'
+      }))} disabled={loading} />
 
       <TouchableOpacity onPress={() => navigation.goBack()} disabled={loading}>
         <Text style={styles.link}>Já tem conta? Faça login</Text>

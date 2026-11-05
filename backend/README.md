@@ -16,7 +16,7 @@ Se não existir `.env` local, esse comando cria um a partir do exemplo sem sobre
 docker compose up --build
 ```
 
-A API fica em `http://localhost:3333`; o Adminer fica em `http://localhost:8080` (selecione **MySQL**, servidor `db`). Na inicialização, o Spring aplica `schema.sql` e carrega `seed.sql`; as tabelas são criadas se ainda não existirem e os seeds não sobrescrevem dados de usuário/catálogo já alterados. O volume `easy-health-mysql-data` é novo e separado do volume PostgreSQL anterior. A conta de demonstração é `maria.silva@email.com` / `senha123`.
+A API fica em `http://localhost:3333`; o Adminer fica em `http://localhost:8080` (selecione **MySQL**, servidor `db`). `01_easyhealth.sql` cria somente as tabelas necessárias à persistência do app. Na primeira inicialização do volume, o MySQL também executa `02_instituicoes_medicas.sql` (schema do catálogo separado `easyhealth_institutions`), `03_dados_exemplo_instituicoes.sql` (registros fictícios lidos pela API) e `04_dados_exemplo_usuario.sql` (conta de demonstração). Os dados de catálogo podem ser inseridos novamente sem duplicar os relacionamentos. O volume `easy-health-mysql-data` é novo e separado do volume PostgreSQL anterior. A conta de demonstração é `maria.silva@email.com` / `senha123`.
 
 Confira `GET http://localhost:3333/health` para verificar a API e a conexão com o banco. A pasta `requests/` contém chamadas de exemplo para a extensão REST Client do VS Code.
 
@@ -45,28 +45,49 @@ export DB_USER='easyhealth'
 export DB_PASSWORD='substitua-por-uma-senha-local-forte'
 ```
 
-3. No diretório `backend/`, rode:
+1. No diretório `backend/`, rode:
 
 ```bash
+mysql --host=localhost --user=easyhealth --password easyhealth < ../docs/SQL/01_easyhealth.sql
+mysql --host=localhost --user=root --password easyhealth < ../docs/SQL/02_instituicoes_medicas.sql
+mysql --host=localhost --user=root --password easyhealth < ../docs/SQL/03_dados_exemplo_instituicoes.sql
+mysql --host=localhost --user=easyhealth --password easyhealth < ../docs/SQL/04_dados_exemplo_usuario.sql
 mvn test
 mvn spring-boot:run
+```
+
+Por padrão, o backend local lê `../docs/SQL/01_easyhealth.sql`. Se executar o JAR
+a partir de outro diretório, defina `SQL_SCRIPTS_DIR` para o caminho absoluto de `docs/SQL`.
+`01_easyhealth.sql` contém somente o schema da persistência principal. `02_instituicoes_medicas.sql`
+cria o catálogo de exemplo separado `easyhealth_institutions`; `03_dados_exemplo_instituicoes.sql`
+insere os dados fictícios consumidos pela API; e `04_dados_exemplo_usuario.sql` adiciona a conta
+opcional de demonstração. O Compose executa os quatro scripts na criação inicial do banco.
+Para preparar manualmente um volume já existente, aplique `02` antes de `03`:
+
+```bash
+docker compose exec -T db sh -c 'mysql --user=root --password easyhealth < /docker-entrypoint-initdb.d/02_instituicoes_medicas.sql'
+```
+
+```bash
+docker compose exec -T db sh -c \
+  'mysql --user=root --password="$MYSQL_ROOT_PASSWORD" < /docker-entrypoint-initdb.d/03_dados_exemplo_instituicoes.sql'
 ```
 
 O teste de inicialização usa um container MySQL via Testcontainers; ele é ignorado quando Docker não está disponível. Para gerar o JAR executável, use `mvn package`; o arquivo fica em `target/easy-health.jar`. Java 25 ou superior e Maven 3.9+ são necessários.
 
 ## Banco de dados e migração
 
-`schema.sql` usa tipos JSON para listas do catálogo e DDL idempotente para criar as tabelas do MySQL. `seed.sql` pode ser executado novamente sem redefinir senhas de usuários ou substituir dados de catálogo já existentes. Alterações futuras no schema de instalações existentes devem ser acompanhadas por uma migração explícita.
+`docs/SQL/01_easyhealth.sql` contém somente as tabelas de persistência. A conta de demonstração fica em `04_dados_exemplo_usuario.sql`; o catálogo de instituições fica no banco separado `easyhealth_institutions`, criado por `02_instituicoes_medicas.sql` e preenchido por `03_dados_exemplo_instituicoes.sql`. A API lê esse catálogo e o usuário da aplicação recebe acesso somente de leitura. Primeiros socorros são conteúdo estático do app em `frontend/src/data/firstAidGuides.json` e não são duplicados no MySQL. Para volumes existentes, execute os scripts `02` e `03` manualmente antes de atualizar o backend; tabelas antigas de catálogo ou primeiros socorros no banco principal não são mais consultadas nem removidas automaticamente. Alterações futuras nos schemas devem ser acompanhadas por migrações explícitas em `docs/SQL`.
 
 A troca de PostgreSQL para MySQL **não converte nem copia dados automaticamente**. Não monte no MySQL o volume PostgreSQL antigo e não aponte o MySQL para um dump PostgreSQL sem conversão de tipos, arrays/JSON, identificadores e sequências. Faça backup do banco anterior e planeje uma exportação/conversão/importação separada antes de migrar dados de produção.
 
-As credenciais de conexão são fornecidas por `DB_URL`, `DB_USER` e `DB_PASSWORD` (ou pelo Compose via `MYSQL_*`). Não armazene valores reais em arquivos versionados; use `.env.example` somente como modelo com placeholders.
+As credenciais de conexão são fornecidas por `DB_URL`, `DB_USER` e `DB_PASSWORD` (ou pelo Compose via `MYSQL_*`). O script oficial cria também as tabelas `oauth_identities` e `medical_history_records`. Não armazene valores reais em arquivos versionados; use `.env.example` somente como modelo com placeholders.
 
 ## Organização do código
 
 ```text
 src/main/java/br/com/easyhealth/
-  config/       CORS, codificação de senha e inicialização de dados
+  config/       CORS e codificação de senha
   controller/   rotas HTTP e tratamento de erros
   dto/          dados validados recebidos pela API
   model/        modelo de usuário
@@ -74,8 +95,12 @@ src/main/java/br/com/easyhealth/
   service/      autenticação, tokens e regras de negócio
 src/main/resources/
   application.properties
-  schema.sql
-  seed.sql
+
+../docs/SQL/
+  01_easyhealth.sql
+  02_instituicoes_medicas.sql
+  03_dados_exemplo_instituicoes.sql
+  04_dados_exemplo_usuario.sql
 ```
 
 Os tokens de acesso e renovação são opacos, aleatórios, guardados no banco somente como hashes SHA-256 e têm expiração distinta. Senhas são armazenadas com BCrypt. Rotas privadas aceitam `Authorization: Bearer <token>`; `accessToken` na query string existe apenas para os exemplos do REST Client.
@@ -84,13 +109,30 @@ Os tokens de acesso e renovação são opacos, aleatórios, guardados no banco s
 
 - `GET /health`
 - `POST /api/auth/{register,login,refresh-token,logout,forgot-password,reset-password,verify-email}`
+- `POST /api/auth/google` — valida ID token do Google; requer `GOOGLE_OAUTH_CLIENT_IDS`
 - `/api/users/me` (perfil, avatar, senha, token de push e preferências)
-- `/api/primeiros-socorros`, `/api/estabelecimentos`, `/api/especialidades`
+- `/api/estabelecimentos`, `/api/especialidades`
 - `/api/emergencia` (contatos, hospitais próximos e distância em linha reta)
 - `/api/agendamentos`, `/api/historico`, `/api/favoritos`, `/api/notificacoes`
 - `/api/localizacao` e `POST /api/assistant/message`
 
-Agendamentos, favoritos, notificações, contas e tokens são persistidos no MySQL. Os catálogos de estabelecimentos/primeiros socorros são dados locais de demonstração; exames, vacinas, medicamentos e documentos ainda retornam listas vazias. Agendamento não confirma disponibilidade real com o hospital.
+Agendamentos, favoritos, notificações, contas, tokens e registros pessoais em
+`/api/historico/registros` são persistidos no MySQL. Os catálogos de estabelecimentos/primeiros
+socorros são dados locais de demonstração. Agendamento não confirma disponibilidade real com
+o hospital.
+
+### OAuth Google e configurações
+
+Defina `GOOGLE_OAUTH_CLIENT_IDS` no ambiente do backend como a lista separada por vírgula de
+todos os Client IDs aceitos (Web/Android/iOS). Configure os Client IDs de cada plataforma no
+frontend por `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`, `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID` e
+`EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`. Veja o passo a passo no [README do frontend](../frontend/README.md#login-com-google).
+Não compartilhe nem inclua Client Secrets no aplicativo. Sem Client IDs, a rota Google responde
+`503` e o login com senha continua disponível.
+
+O PDF da consulta é um resumo informativo e não constitui receita, atestado ou laudo clínico.
+Registros pessoais do histórico são inseridos pela própria pessoa usuária; não substituem
+documentos clínicos emitidos por profissionais.
 
 ### Integrações ainda não configuradas
 

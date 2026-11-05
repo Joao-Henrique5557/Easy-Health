@@ -1,7 +1,6 @@
 import { Linking, Platform } from "react-native";
 import { api } from "./api";
 import { EMERGENCY_NUMBERS } from "@/config/env";
-import { ESTABLISHMENTS_MOCK } from "@/data/establishmentsMock";
 /**
  * REGRA DE OURO deste serviço: nenhuma função aqui liga para ninguém
  * sozinha. `callNumber` apenas ABRE o discador nativo do Android/iOS
@@ -44,24 +43,10 @@ export const emergencyService = {
     }
   },
   async getNearbyHospitals(coords) {
-    try {
-      const {
-        data
-      } = await api.get("/api/emergencia/hospitais-proximos", {
-        params: coords
-      });
-      return data;
-    } catch {
-      return ESTABLISHMENTS_MOCK.filter(e => e.tipo === "hospital" || e.tipo === "upa").map(e => ({
-        id: e.id,
-        nome: e.nome,
-        distanciaKm: e.distanciaKm,
-        endereco: e.endereco,
-        aberto24h: e.horario.toLowerCase().includes("24h"),
-        latitude: e.latitude,
-        longitude: e.longitude
-      }));
-    }
+    const { data } = await api.get("/api/emergencia/hospitais-proximos", {
+      params: coords
+    });
+    return data;
   },
   /** Abre o app de mapas do sistema com a rota traçada — não navega dentro do app. */
   async openRouteInMaps(destination, label) {

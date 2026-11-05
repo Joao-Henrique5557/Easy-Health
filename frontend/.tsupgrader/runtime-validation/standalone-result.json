@@ -1,0 +1,141 @@
+{
+  "planHash": "d9ed494995d78fb1d5f5c2f96937ccd29a8622136802f0e090c183dabb530045",
+  "phase": "standalone",
+  "recordedAtUtc": "2026-11-05T12:21:18.6903844Z",
+  "retryCount": 0,
+  "resetBaseline": false,
+  "complete": true,
+  "result": {
+    "setupSucceeded": true,
+    "setupDurationMs": 7966,
+    "setupFailureOutput": null,
+    "assertions": [
+      {
+        "name": "frontend-lint",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": false,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 127,
+        "outputSample": "\n\u003E easy-health@1.0.0 lint\n\u003E eslint . --ext .js,.jsx\n\nsh: 1: eslint: not found\n",
+        "durationMs": 219
+      },
+      {
+        "name": "frontend-tests",
+        "kind": "process",
+        "verificationMethod": "test-results",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "\n\u003E easy-health@1.0.0 test\n\u003E node --test --test-reporter=tap\n\nTAP version 13\n# Subtest: formats valid numeric values to one decimal place\nok 1 - formats valid numeric values to one decimal place\n  ---\n  duration_ms: 1.287961\n  type: \u0027test\u0027\n  ...\n# Subtest: returns null for missing or invalid values\nok 2 - returns null for missing or invalid values\n  ---\n  duration_ms: 0.200918\n  type: \u0027test\u0027\n  ...\n1..2\n# tests 2\n# suites 0\n# pass 2\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 102.968606\n",
+        "durationMs": 284,
+        "testResults": {
+          "testFramework": "unknown",
+          "runnerDetectedFrom": "none",
+          "testsTotal": 0,
+          "testsPassed": 0,
+          "testsFailed": 0,
+          "testsSkipped": 0,
+          "parseFailed": true
+        }
+      },
+      {
+        "name": "frontend-web-export",
+        "kind": "process",
+        "verificationMethod": "exit-code",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": 0,
+        "outputSample": "Starting Metro Bundler\n\nWeb Bundled 1299ms node_modules/expo/AppEntry.js (869 modules)\n\n\u203A Assets (39):\nnode_modules/@expo-google-fonts/inter/Inter_100Thin.2dce622147cace7b467d9929b7708430.ttf (311KB)\nnode_modules/@expo-google-fonts/inter/Inter_200ExtraLight.0f3ac0692901f70f1ac32cf079355051.ttf (311KB)\nnode_modules/@expo-google-fonts/inter/Inter_300Light.d55f45d07cfe01e8797bd1566561f718.ttf (310KB)\nnode_modules/@expo-google-fonts/inter/Inter_400Regular.079af0e2936ccb99b391ddc0bbb73dcb.ttf (310KB)\nnode_modules/@expo-google-fonts/inter/Inter_500Medium.ed533866b5c83114c7dddbcbc2288b19.ttf (315KB)\nnode_modules/@expo-google-fonts/inter/Inter_600SemiBold.07a48beb92b401297a76ff9f6aedd0ed.ttf (316KB)\nnode_modules/@expo-google-fonts/inter/Inter_700Bold.275bfea5dc74c33f51916fee80feae67.ttf (316KB)\nnode_modules/@expo-google-fonts/inter/Inter_800ExtraBold.c9709fb8e32755490795ce5bd226c3a0.ttf (317KB)\nnode_modules/@expo-google-fonts/inter/Inter_900Black.980c7e8757e741bb49c7c96513924c61.ttf (316KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/AntDesign.3f78af31cca60105799838a1a7a59fbd.ttf (130KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Entypo.31b5ffea3daddc69dd01a1f3d6cf63c5.ttf (66KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/EvilIcons.140c53a7643ea949007aa9a282153849.ttf (13KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Feather.ca4b48e04dc1ce10bfbddb262c8b835f.ttf (56KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome.b06871f281fee6b241d60582ae9369b9.ttf (166KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Brands.3b89dd103490708d19a95adcae52210e.ttf (134KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Regular.1f77739ca9ff2188b539c36f30ffa2be.ttf (34KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome5_Solid.605ed7926cf39a2ad5ec2d1f9d391d3d.ttf (203KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome6_Brands.56c8d80832e37783f12c05db7c8849e2.ttf (209KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome6_Regular.370dd5af19f8364907b6e2c41f45dbbf.ttf (68KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/FontAwesome6_Solid.adec7d6f310bc577f05e8fe06a5daccf.ttf (424KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Fontisto.b49ae8ab2dbccb02c4d11caaacf09eab.ttf (314KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Foundation.e20945d7c929279ef7a6f1db184a4470.ttf (57KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.b4eb097d35f44ed943676fd56f6bdc51.ttf (390KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialCommunityIcons.6e435534bd35da5fef04168860a9b8fa.ttf (1.3MB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/MaterialIcons.4e85bc9ebe07e0340c9c4fc2f6c38908.ttf (357KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Octicons.871378c6eab492a3e689a9385dc45a12.ttf (69KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/SimpleLineIcons.d2285965fe34b05465047401b8595dd0.ttf (54KB)\nnode_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Zocial.1681f34aaca71b8dfb70756bca331eb2.ttf (26KB)\nnode_modules/@react-navigation/elements/lib/module/assets/back-icon-mask.0a328cd9c1afd0afe8e3b1ec5165b1b4.png (653B)\nnode_modules/@react-navigation/elements/lib/module/assets/back-icon.35ba0eaec5a4f5ed12ca16fabeae451d.png (207B)\nnode_modules/@react-navigation/elements/lib/module/assets/clear-icon.c94f6478e7ae0cdd9f15de1fcb9e5e55.png (4 variations | 425B)\nnode_modules/@react-navigation/elements/lib/module/assets/close-icon.808e1b1b9b53114ec2838071a7e6daa7.png (4 variations | 235B)\nnode_modules/@react-navigation/elements\n\u2026[truncated]",
+        "durationMs": 3571
+      },
+      {
+        "name": "frontend-web-responds",
+        "kind": "http-probe",
+        "verificationMethod": "http-status",
+        "passed": true,
+        "timedOut": false,
+        "skipped": false,
+        "skippedReason": null,
+        "exitCode": null,
+        "outputSample": "HTTP 200\n\u003C!doctype html\u003E\n\u003Chtml lang=\u0022en\u0022\u003E\n  \u003Chead\u003E\n    \u003Cmeta charset=\u0022utf-8\u0022 /\u003E\n    \u003Cmeta httpEquiv=\u0022X-UA-Compatible\u0022 content=\u0022IE=edge\u0022 /\u003E\n    \u003Cmeta name=\u0022viewport\u0022 content=\u0022width=device-width, initial-scale=1, shrink-to-fit=no\u0022 /\u003E\n    \u003Ctitle\u003EEasy Health\u003C/title\u003E\n    \u003C!-- The \u0060react-native-web\u0060 recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element --\u003E\n    \u003Cstyle id=\u0022expo-reset\u0022\u003E\n      /* These styles make the body full-height */\n      html,\n      body {\n        height: 100%;\n      }\n      /* These styles disable body scrolling if you are using \u003CScrollView\u003E */\n      body {\n        overflow: hidden;\n      }\n      /* These styles make the root element full-height */\n      #root {\n        display: flex;\n        height: 100%;\n        flex: 1;\n      }\n    \u003C/style\u003E\n  \u003C/head\u003E\n\n  \u003Cbody\u003E\n    \u003C!-- Use static rendering with Expo Router to support running without JavaScript. --\u003E\n    \u003Cnoscript\u003E You need to enable JavaScript to run this app. \u003C/noscript\u003E\n    \u003C!-- The root element for your Expo app. --\u003E\n    \u003Cdiv id=\u0022root\u0022\u003E\u003C/div\u003E\n  \u003Cscript src=\u0022/node_modules/expo/AppEntry.bundle?platform=web\u0026dev=true\u0026hot=false\u0026lazy=true\u0026transform.engine=hermes\u0026transform.routerRoot=app\u0026unstable_transformProfile=hermes-stable\u0022 defer\u003E\u003C/script\u003E\u003C/body\u003E\n\u003C/html\u003E\n\n--- server output ---\nStarting project at /home/joao-henrique/projetos/Easy-Health/frontend\nStarting Metro Bundler\n\nWaiting on http://localhost:8082\n\nLogs for your project will appear below.\n",
+        "durationMs": 3605
+      }
+    ],
+    "executions": [
+      {
+        "source": "setup[0]",
+        "resolvedExecutable": "/home/joao-henrique/.nvm/versions/node/v24.16.0/bin/npm",
+        "args": [
+          "ci"
+        ],
+        "cwd": "/home/joao-henrique/projetos/Easy-Health/frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      },
+      {
+        "source": "frontend-lint",
+        "resolvedExecutable": "/home/joao-henrique/.nvm/versions/node/v24.16.0/bin/npm",
+        "args": [
+          "run",
+          "lint"
+        ],
+        "cwd": "/home/joao-henrique/projetos/Easy-Health/frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      },
+      {
+        "source": "frontend-tests",
+        "resolvedExecutable": "/home/joao-henrique/.nvm/versions/node/v24.16.0/bin/npm",
+        "args": [
+          "test",
+          "--",
+          "--test-reporter=tap"
+        ],
+        "cwd": "/home/joao-henrique/projetos/Easy-Health/frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      },
+      {
+        "source": "frontend-web-export",
+        "resolvedExecutable": "/home/joao-henrique/.nvm/versions/node/v24.16.0/bin/npx",
+        "args": [
+          "expo",
+          "export",
+          "--platform",
+          "web",
+          "--output-dir",
+          ".tsupgrader/runtime-validation/web-export"
+        ],
+        "cwd": "/home/joao-henrique/projetos/Easy-Health/frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      },
+      {
+        "source": "frontend-web-responds",
+        "resolvedExecutable": "/home/joao-henrique/.nvm/versions/node/v24.16.0/bin/npx",
+        "args": [
+          "expo",
+          "start",
+          "--web",
+          "--port",
+          "8082"
+        ],
+        "cwd": "/home/joao-henrique/projetos/Easy-Health/frontend",
+        "env": {},
+        "prependPath": [],
+        "platform": "linux"
+      }
+    ]
+  }
+}

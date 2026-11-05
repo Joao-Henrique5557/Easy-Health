@@ -1,6 +1,7 @@
 package br.com.easyhealth.config;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -35,9 +36,9 @@ public class AppConfig {
 
     @NonNull
     private static String[] parseAllowedOrigins(@NonNull String origins) {
-        return Arrays.stream(origins.split(","))
+        return Objects.requireNonNull(Arrays.stream(origins.split(","))
                 .map((@NonNull String origin) -> origin.trim())
                 .filter(origin -> !origin.isEmpty())
-                .toArray(String[]::new);
+                .toArray(String[]::new));
     }
 }

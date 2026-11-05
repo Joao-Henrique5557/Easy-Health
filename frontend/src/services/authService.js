@@ -18,6 +18,13 @@ export const authService = {
     await tokenStorage.setTokens(data.accessToken, data.refreshToken);
     return data;
   },
+  async loginWithGoogle(idToken) {
+    const { data } = await api.post("/api/auth/google", {
+      idToken
+    });
+    await tokenStorage.setTokens(data.accessToken, data.refreshToken);
+    return data;
+  },
   async logout() {
     try {
       if (await tokenStorage.hasAccessToken()) {

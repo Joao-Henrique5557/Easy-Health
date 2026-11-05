@@ -1,5 +1,5 @@
 # Node.js é usado para instalar as dependências e executar o Expo para web.
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 

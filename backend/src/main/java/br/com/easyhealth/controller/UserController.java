@@ -5,6 +5,7 @@ import java.util.Map;
 import br.com.easyhealth.dto.ChangePasswordRequest;
 import br.com.easyhealth.model.User;
 import br.com.easyhealth.repository.UserRepository;
+import br.com.easyhealth.service.AvatarImageService;
 import br.com.easyhealth.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -26,11 +27,13 @@ public class UserController {
     private final AuthService auth;
     private final UserRepository users;
     private final JdbcTemplate jdbc;
+    private final AvatarImageService avatars;
 
-    public UserController(AuthService auth, UserRepository users, JdbcTemplate jdbc) {
+    public UserController(AuthService auth, UserRepository users, JdbcTemplate jdbc, AvatarImageService avatars) {
         this.auth = auth;
         this.users = users;
         this.jdbc = jdbc;
+        this.avatars = avatars;
     }
 
     @GetMapping
@@ -68,10 +71,19 @@ public class UserController {
     public Map<String, Object> updateAvatar(HttpServletRequest request,
             @RequestBody Map<String, Object> body) {
         User user = currentUser(request);
-        users.updateProfile(user.id(), user.nome(), user.telefone(), user.dataNascimento(),
-                value(body, "avatarUrl", user.avatarUrl()), user.tipoSanguineo(), user.alergias(),
-                user.medicamentosEmUso(), user.planoDeSaude(), user.contatoEmergenciaNome(),
-                user.contatoEmergenciaTelefone(), user.contatoEmergenciaParentesco());
+        Object rawAvatar = body.get("avatarUrl");
+        if (rawAvatar != null && !(rawAvatar instanceof String)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Imagem de perfil inválida.");
+        }
+        String avatarUrl = avatars.normalize((String) rawAvatar);
+        updateAvatar(user, avatarUrl);
+        return currentUser(request).publicView();
+    }
+
+    @DeleteMapping("/avatar")
+    public Map<String, Object> deleteAvatar(HttpServletRequest request) {
+        User user = currentUser(request);
+        updateAvatar(user, null);
         return currentUser(request).publicView();
     }
 
@@ -109,6 +121,13 @@ public class UserController {
         String userId = auth.requireUserId(request);
         return users.findById(userId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
+    }
+
+    private void updateAvatar(User user, String avatarUrl) {
+        users.updateProfile(user.id(), user.nome(), user.telefone(), user.dataNascimento(),
+                avatarUrl, user.tipoSanguineo(), user.alergias(), user.medicamentosEmUso(),
+                user.planoDeSaude(), user.contatoEmergenciaNome(),
+                user.contatoEmergenciaTelefone(), user.contatoEmergenciaParentesco());
     }
 
     private static String value(Map<String, Object> body, String key, String fallback) {

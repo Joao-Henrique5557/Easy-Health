@@ -33,7 +33,6 @@ export function HomeScreen() {
       query: searchText || undefined
     });
   }
-  const primeiroNome = profile?.nome?.split(" ")[0] ?? "";
   return <View style={{
     flex: 1,
     backgroundColor: colors.bg

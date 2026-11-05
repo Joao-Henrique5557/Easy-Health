@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { AppAlert as Alert } from "@/services/appAlert";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import { colors } from "@/theme/colors";
@@ -15,6 +16,7 @@ export function EstablishmentDetailScreen() {
   const navigation = useAppNavigation();
   const route = useRoute();
   const [item, setItem] = useState(null);
+  const [loadError, setLoadError] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   useEffect(() => {
     establishmentsService.getById(route.params.id).then(data => {
@@ -28,6 +30,9 @@ export function EstablishmentDetailScreen() {
           }
         });
       }
+    }).catch(error => {
+      console.error("Não foi possível carregar o estabelecimento.", error);
+      setLoadError(true);
     });
   }, [route.params.id]);
   async function toggleFavorite() {
@@ -64,9 +69,14 @@ export function EstablishmentDetailScreen() {
       flex: 1,
       backgroundColor: colors.bg,
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      padding: spacing.lg
     }}>
-        <ActivityIndicator color={colors.primary} />
+        {loadError ? <Text style={{
+        color: colors.inkSoft,
+        fontFamily: fonts.regular,
+        textAlign: "center"
+      }}>Não foi possível carregar o estabelecimento. Verifique a conexão e tente novamente.</Text> : <ActivityIndicator color={colors.primary} />}
       </View>;
   }
   return <ScrollView style={{

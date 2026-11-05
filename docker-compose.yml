@@ -34,14 +34,18 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - "./docs/SQL:/app/sql:ro"
     environment:
-      DB_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-easyhealth}?serverTimezone=UTC&characterEncoding=UTF-8
-      DB_USER: ${MYSQL_USER:-easyhealth}
-      DB_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the root .env file}
-      CORS_ORIGIN: ${CORS_ORIGIN:-*}
-      JWT_ACCESS_EXPIRES_MINUTES: ${JWT_ACCESS_EXPIRES_MINUTES:-15}
-      JWT_REFRESH_EXPIRES_DAYS: ${JWT_REFRESH_EXPIRES_DAYS:-7}
-      RESET_CODE_LOG_ENABLED: ${RESET_CODE_LOG_ENABLED:-false}
+      SQL_SCRIPTS_DIR: /app/sql
+      DB_URL: "jdbc:mysql://db:3306/${MYSQL_DATABASE:-easyhealth}?serverTimezone=UTC&characterEncoding=UTF-8"
+      DB_USER: "${MYSQL_USER:-easyhealth}"
+      DB_PASSWORD: "${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the root .env file}"
+      CORS_ORIGIN: "${CORS_ORIGIN:-*}"
+      JWT_ACCESS_EXPIRES_MINUTES: "${JWT_ACCESS_EXPIRES_MINUTES:-15}"
+      JWT_REFRESH_EXPIRES_DAYS: "${JWT_REFRESH_EXPIRES_DAYS:-7}"
+      RESET_CODE_LOG_ENABLED: "${RESET_CODE_LOG_ENABLED:-false}"
+      GOOGLE_OAUTH_CLIENT_IDS: "${GOOGLE_OAUTH_CLIENT_IDS:-}"
     ports:
       - "${BACKEND_PORT:-3333}:8080"
     # A mesma rota ajuda o Compose a detectar falhas da API.
@@ -64,6 +68,9 @@ services:
     environment:
       # Esta URL é acessada pelo navegador, não pelo container do frontend.
       EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:${BACKEND_PORT:-3333}}
+      EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: ${EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID:-}
+      EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID: ${EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID:-}
+      EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: ${EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID:-}
     ports:
       - "${FRONTEND_PORT:-8081}:8081"
 

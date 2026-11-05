@@ -4,7 +4,7 @@ import { colors } from "@/theme/colors";
 import { fonts } from "@/theme/typography";
 import { OnboardingScreen } from "@/screens/OnboardingScreen";
 import { LoginScreen } from "@/screens/LoginScreen";
-import RegisterScreen from "@/screens/RegisterScreen";
+import { RegisterScreen } from "@/screens/RegisterScreen";
 import { ForgotPasswordScreen } from "@/screens/ForgotPasswordScreen";
 import { FirstAidScreen } from "@/screens/FirstAidScreen";
 import { FirstAidDetailScreen } from "@/screens/FirstAidDetailScreen";

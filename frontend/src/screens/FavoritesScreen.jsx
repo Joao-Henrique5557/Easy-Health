@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { AppAlert as Alert } from "@/services/appAlert";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { colors } from "@/theme/colors";
@@ -35,7 +36,7 @@ export function FavoritesScreen() {
     try {
       await favoritesService.remove(id);
       load();
-    } catch (error) {
+    } catch {
       Alert.alert("Não foi possível remover o favorito", "Tente novamente em instantes.");
     }
   }

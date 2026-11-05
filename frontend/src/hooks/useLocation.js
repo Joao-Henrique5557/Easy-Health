@@ -45,7 +45,7 @@ export function useLocation() {
         permissionDenied: false
       });
       return coords;
-    } catch (e) {
+    } catch {
       setState({
         coords: null,
         loading: false,

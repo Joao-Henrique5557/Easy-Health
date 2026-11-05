@@ -4,6 +4,7 @@ import { useNavigation } from "@react-navigation/native";
 import { authService } from "@/services/authService";
 import { getErrorMessage } from "@/utils/apiError";
 import { useToast } from "@/components/Toast";
+import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 export function LoginScreen({
   onAuthenticated
 }) {
@@ -38,6 +39,7 @@ export function LoginScreen({
     <TextInput style={styles.input} placeholder="E-mail" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" editable={!loading} />
     <TextInput style={styles.input} placeholder="Senha" value={senha} onChangeText={setSenha} secureTextEntry editable={!loading} />
     <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>{loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Entrar</Text>}</TouchableOpacity>
+    <GoogleSignInButton onAuthenticated={onAuthenticated} disabled={loading} />
     <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}><Text style={styles.link}>Esqueci minha senha</Text></TouchableOpacity>
     <TouchableOpacity onPress={() => navigation.goBack()}><Text style={styles.link}>Voltar</Text></TouchableOpacity>
   </View>;

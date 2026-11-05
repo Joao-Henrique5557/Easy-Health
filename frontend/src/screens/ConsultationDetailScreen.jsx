@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Platform, ScrollView, Text, View } from "react-native";
+import { AppAlert as Alert } from "@/services/appAlert";
 import { useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/theme/colors";
@@ -10,18 +11,40 @@ import { Avatar } from "@/components/Avatar";
 import { SecondaryButton } from "@/components/Buttons";
 import { useAppNavigation } from "@/navigation/useAppNavigation";
 import { historyService } from "@/services/historyService";
+import { consultationPdfService } from "@/services/consultationPdfService";
 import { formatDateLong } from "@/utils/date";
 export function ConsultationDetailScreen() {
   const navigation = useAppNavigation();
   const route = useRoute();
   const [consulta, setConsulta] = useState(null);
+  const [downloading, setDownloading] = useState(false);
   useEffect(() => {
-    historyService.getConsultaById(route.params.id).then(data => setConsulta(data ?? null));
-  }, [route.params.id]);
-  function handleDownloadPdf() {
-    // Geração real de PDF fica para o backend (rota de histórico/documentos);
-    // aqui é só o placeholder visual do botão.
-    Alert.alert("Em breve", "O download da receita em PDF ainda está em desenvolvimento.");
+    let active = true;
+    historyService.getConsultaById(route.params.id)
+      .then(data => {
+        if (active) setConsulta(data ?? null);
+      })
+      .catch(error => {
+        Alert.alert("Não foi possível carregar a consulta", error.message || "Tente novamente.");
+        if (active) navigation.goBack();
+      });
+    return () => {
+      active = false;
+    };
+  }, [navigation, route.params.id]);
+  async function handleDownloadPdf() {
+    if (!consulta || downloading) return;
+    setDownloading(true);
+    try {
+      await consultationPdfService.shareSummary(consulta);
+      if (Platform.OS === "web") {
+        Alert.alert("Resumo pronto", "Na janela de impressão, escolha “Salvar como PDF”.");
+      }
+    } catch (error) {
+      Alert.alert("Não foi possível gerar o resumo", error.message || "Tente novamente.");
+    } finally {
+      setDownloading(false);
+    }
   }
   if (!consulta) {
     return <View style={{
@@ -200,6 +223,6 @@ export function ConsultationDetailScreen() {
       }}>{consulta.retorno}</Text>
         </View>}
 
-      <SecondaryButton label="Baixar Receita (PDF)" icon="download-outline" onPress={handleDownloadPdf} />
+      <SecondaryButton label="Salvar Resumo da Consulta (PDF)" icon="download-outline" loading={downloading} onPress={handleDownloadPdf} />
     </ScrollView>;
 }

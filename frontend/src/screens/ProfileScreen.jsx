@@ -1,5 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import React, { useCallback, useState } from "react";
+import { Pressable, ScrollView, Text, View } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { AppAlert as Alert } from "@/services/appAlert";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/theme/colors";
 import { fonts, radius, spacing } from "@/theme/typography";
@@ -23,9 +25,15 @@ const MENU_ITEMS = [{
 export function ProfileScreen() {
   const navigation = useAppNavigation();
   const [profile, setProfile] = useState(null);
-  useEffect(() => {
-    profileService.getMe().then(setProfile);
-  }, []);
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    profileService.getMe().then(data => {
+      if (active) setProfile(data);
+    });
+    return () => {
+      active = false;
+    };
+  }, []));
   function handleLogout() {
     Alert.alert("Sair da conta", "Tem certeza que deseja sair?", [{
       text: "Cancelar",

@@ -24,50 +24,32 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class CatalogController {
-    private static final List<String> SPECIALTIES = List.of(
-            "Cardiologia", "Clínica médica", "Dermatologia", "Pediatria");
+    private static final String ESTABLISHMENT_SELECT = """
+            SELECT i.id, i.nome, i.tipo, i.rede_atendimento,
+                i.endereco_completo AS endereco, i.avaliacao, i.avaliacoes_count,
+                i.status, i.status_label, i.horario_padrao AS horario, i.telefone,
+                COALESCE((
+                    SELECT JSON_ARRAYAGG(e.nome)
+                    FROM easyhealth_institutions.instituicao_especialidades ie
+                    JOIN easyhealth_institutions.especialidades e ON e.id = ie.especialidade_id
+                    WHERE ie.instituicao_id = i.id AND e.ativo = TRUE
+                ), JSON_ARRAY()) AS especialidades,
+                COALESCE((
+                    SELECT JSON_ARRAYAGG(c.nome)
+                    FROM easyhealth_institutions.instituicao_convenios ic
+                    JOIN easyhealth_institutions.convenios c ON c.id = ic.convenio_id
+                    WHERE ic.instituicao_id = i.id AND c.ativo = TRUE
+                ), JSON_ARRAY()) AS convenios,
+                i.latitude, i.longitude
+            FROM easyhealth_institutions.instituicoes_saude i
+            """;
+
     private final JdbcTemplate jdbc;
     private final ObjectMapper objectMapper;
 
     public CatalogController(JdbcTemplate jdbc, ObjectMapper objectMapper) {
         this.jdbc = jdbc;
         this.objectMapper = objectMapper;
-    }
-
-    @GetMapping("/api/primeiros-socorros")
-    public List<Map<String, Object>> guides(@RequestParam(required = false) String query) {
-        if (query == null || query.isBlank()) {
-            return allGuides();
-        }
-        return jdbc.query("""
-                SELECT id, titulo, resumo, icon, passos FROM first_aid_guides
-                WHERE lower(titulo) LIKE ? OR lower(resumo) LIKE ?
-                ORDER BY titulo
-                """, this::mapGuide, contains(query), contains(query));
-    }
-
-    @GetMapping("/api/primeiros-socorros/busca")
-    public List<Map<String, Object>> searchGuides(@RequestParam(defaultValue = "") String query) {
-        return guides(query);
-    }
-
-    @GetMapping("/api/primeiros-socorros/categorias")
-    public List<Map<String, Object>> guideCategories() {
-        return allGuides().stream().map(guide -> {
-            Map<String, Object> category = new LinkedHashMap<>();
-            category.put("id", guide.get("id"));
-            category.put("titulo", guide.get("titulo"));
-            category.put("icon", guide.get("icon"));
-            return category;
-        }).toList();
-    }
-
-    @GetMapping("/api/primeiros-socorros/{id}")
-    public Map<String, Object> guide(@PathVariable String id) {
-        return jdbc.query("""
-                SELECT id, titulo, resumo, icon, passos FROM first_aid_guides WHERE id = ?
-                """, this::mapGuide, id).stream().findFirst().orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Guia não encontrado."));
     }
 
     @GetMapping({"/api/estabelecimentos", "/api/estabelecimentos/busca"})
@@ -77,12 +59,9 @@ public class CatalogController {
             @RequestParam(defaultValue = "todos") String tipo,
             @RequestParam(required = false) String query,
             @RequestParam(required = false) Double raioKm) {
-        List<Map<String, Object>> establishments = jdbc.query("""
-                SELECT id, nome, tipo, rede_atendimento, endereco, avaliacao, avaliacoes_count,
-                    status, status_label, horario, telefone, especialidades, convenios,
-                    latitude, longitude
-                FROM establishments ORDER BY nome
-                """, (row, index) -> mapEstablishment(row));
+        List<Map<String, Object>> establishments = jdbc.query(
+                ESTABLISHMENT_SELECT + " ORDER BY i.nome",
+                (row, index) -> mapEstablishment(row));
         return establishments.stream()
                 .filter(place -> "todos".equalsIgnoreCase(tipo)
                         || tipo.equalsIgnoreCase((String) place.get("tipo")))
@@ -104,7 +83,13 @@ public class CatalogController {
     @GetMapping("/api/estabelecimentos/{id}/especialidades")
     public List<String> establishmentSpecialties(@PathVariable String id) {
         findEstablishment(id);
-        return SPECIALTIES;
+        return jdbc.query("""
+                SELECT e.nome
+                FROM easyhealth_institutions.instituicao_especialidades ie
+                JOIN easyhealth_institutions.especialidades e ON e.id = ie.especialidade_id
+                WHERE ie.instituicao_id = ? AND e.ativo = TRUE
+                ORDER BY e.nome
+                """, (row, index) -> row.getString("nome"), id);
     }
 
     @GetMapping("/api/estabelecimentos/{id}/precos")
@@ -121,7 +106,10 @@ public class CatalogController {
 
     @GetMapping("/api/especialidades")
     public List<String> specialties() {
-        return SPECIALTIES;
+        return jdbc.query("""
+                SELECT nome FROM easyhealth_institutions.especialidades
+                WHERE ativo = TRUE ORDER BY nome
+                """, (row, index) -> row.getString("nome"));
     }
 
     @GetMapping("/api/emergencia/contatos")
@@ -202,31 +190,11 @@ public class CatalogController {
                 "Geocodificação externa não configurada. O app pode abrir o endereço no aplicativo de mapas.");
     }
 
-    private List<Map<String, Object>> allGuides() {
-        return jdbc.query("""
-                SELECT id, titulo, resumo, icon, passos FROM first_aid_guides ORDER BY titulo
-                """, this::mapGuide);
-    }
-
     private Map<String, Object> findEstablishment(String id) {
-        return jdbc.query("""
-                SELECT id, nome, tipo, rede_atendimento, endereco, avaliacao, avaliacoes_count,
-                    status, status_label, horario, telefone, especialidades, convenios,
-                    latitude, longitude
-                FROM establishments WHERE id = ?
-                """, (row, index) -> mapEstablishment(row), id).stream().findFirst()
+        return jdbc.query(ESTABLISHMENT_SELECT + " WHERE i.id = ?",
+                (row, index) -> mapEstablishment(row), id).stream().findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                         "Estabelecimento não encontrado."));
-    }
-
-    private Map<String, Object> mapGuide(ResultSet row, int index) throws SQLException {
-        Map<String, Object> guide = new LinkedHashMap<>();
-        guide.put("id", row.getString("id"));
-        guide.put("titulo", row.getString("titulo"));
-        guide.put("resumo", row.getString("resumo"));
-        guide.put("icon", row.getString("icon"));
-        guide.put("passos", readJsonList(row.getString("passos")));
-        return guide;
     }
 
     private Map<String, Object> mapEstablishment(ResultSet row) throws SQLException {
@@ -288,9 +256,5 @@ public class CatalogController {
 
     private static Map<String, String> contact(String label, String number, String description) {
         return Map.of("label", label, "numero", number, "descricao", description);
-    }
-
-    private static String contains(String value) {
-        return "%" + value.trim().toLowerCase(Locale.ROOT) + "%";
     }
 }

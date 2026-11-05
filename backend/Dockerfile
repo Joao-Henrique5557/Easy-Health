@@ -21,6 +21,7 @@ RUN apk add --no-cache curl \
 
 WORKDIR /app
 COPY --from=build --chown=app:app /app/target/easy-health.jar ./app.jar
+RUN mkdir -p /app/sql && chown app:app /app/sql
 
 USER app
 EXPOSE 8080

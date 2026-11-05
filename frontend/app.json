@@ -3,13 +3,13 @@
     "name": "Easy Health",
     "slug": "easy-health",
     "version": "1.0.0",
+    "scheme": "easyhealth",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "backgroundColor": "#F5FAF8"
-    },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "android": {
       "package": "br.com.easyhealth.app",
       "adaptiveIcon": {
@@ -20,7 +20,9 @@
         "ACCESS_COARSE_LOCATION",
         "POST_NOTIFICATIONS",
         "VIBRATE",
-        "INTERNET"
+        "INTERNET",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "plugins": [
@@ -37,10 +39,38 @@
           "icon": "./assets/notification-icon.png",
           "color": "#146B63"
         }
-      ]
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "O Easy Health precisa adicionar suas consultas ao calendário quando você solicitar."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Easy Health acessa suas fotos somente para você escolher uma imagem de perfil."
+        }
+      ],
+      "expo-font",
+      "expo-secure-store",
+      "expo-asset",
+      "expo-web-browser",
+      "expo-sharing",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F5FAF8"
+        }
+      ],
+      "expo-status-bar"
     ],
     "extra": {
-      "apiUrl": "http://192.168.3.52:3333"
-    }
+      "apiUrl": "http://192.168.3.52:3333",
+      "eas": {
+        "projectId": "25c4d129-ea78-4043-9710-f91ee6233bb1"
+      }
+    },
+    "owner": "joao-henrique5557"
   }
 }

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { AppAlert as Alert } from "@/services/appAlert";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { colors } from "@/theme/colors";
 import { fonts, radius, spacing } from "@/theme/typography";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { notificationsService } from "@/services/notificationsService";
+import { getApiErrorMessage } from "@/utils/apiError";
 const GROUP_LABEL = {
   hoje: "HOJE",
   ontem: "ONTEM",
@@ -15,21 +17,32 @@ export function NotificationsScreen() {
   const navigation = useNavigation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   useEffect(() => {
+    let active = true;
     notificationsService.list().then(data => {
-      setItems(data);
-      setLoading(false);
+      if (active) setItems(data);
+    }).catch(error => {
+      console.error("Não foi possível carregar as notificações.", error);
+      if (active) setLoadError(true);
+    }).finally(() => {
+      if (active) setLoading(false);
     });
+    return () => {
+      active = false;
+    };
   }, []);
-  function handlePress(notification) {
+  async function handlePress(notification) {
     if (notification.lida) return;
-    // Atualização otimista: marca como lida na UI imediatamente e envia a
-    // confirmação para o backend em segundo plano.
-    setItems(prev => prev.map(n => n.id === notification.id ? {
-      ...n,
-      lida: true
-    } : n));
-    notificationsService.markAsRead(notification.id);
+    try {
+      await notificationsService.markAsRead(notification.id);
+      setItems(prev => prev.map(n => n.id === notification.id ? {
+        ...n,
+        lida: true
+      } : n));
+    } catch (error) {
+      Alert.alert("Não foi possível atualizar a notificação", getApiErrorMessage(error, "Tente novamente."));
+    }
   }
   const groups = ["hoje", "ontem", "semana"];
   return <ScrollView style={{
@@ -41,7 +54,15 @@ export function NotificationsScreen() {
   }}>
       <ScreenHeader title="Notificações" onBack={() => navigation.goBack()} />
 
-      {loading ? <ActivityIndicator color={colors.primary} /> : items.length === 0 ? <Text style={{
+      {loading ? <ActivityIndicator color={colors.primary} /> : loadError ? <Text style={{
+      fontFamily: fonts.regular,
+      fontSize: 12.5,
+      color: colors.inkSoft,
+      textAlign: "center",
+      marginTop: 20
+    }}>
+          Não foi possível carregar as notificações. Verifique a conexão e tente novamente.
+        </Text> : items.length === 0 ? <Text style={{
       fontFamily: fonts.regular,
       fontSize: 12.5,
       color: colors.inkSoft,

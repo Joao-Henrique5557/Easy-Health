@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
+import { AppAlert as Alert } from "@/services/appAlert";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import { colors } from "@/theme/colors";
@@ -23,6 +24,7 @@ export function BookingScreen() {
   const navigation = useAppNavigation();
   const route = useRoute();
   const [establishment, setEstablishment] = useState(null);
+  const [establishmentLoadError, setEstablishmentLoadError] = useState(false);
   const [especialidade, setEspecialidade] = useState("");
   const [showEspecialidades, setShowEspecialidades] = useState(false);
   const [monthRef, setMonthRef] = useState(new Date());
@@ -36,12 +38,19 @@ export function BookingScreen() {
     establishmentsService.getById(route.params.establishmentId).then(data => {
       setEstablishment(data ?? null);
       setEspecialidade(data?.especialidades?.[0] ?? "Clínica Geral");
+    }).catch(error => {
+      console.error("Não foi possível carregar o estabelecimento para agendamento.", error);
+      setEstablishmentLoadError(true);
     });
   }, [route.params.establishmentId]);
   useEffect(() => {
     establishmentsService.getHorariosDisponiveis(route.params.establishmentId, selectedDate).then(data => {
       setHorarios(data);
       setSelectedHorario(null);
+    }).catch(error => {
+      console.error("Não foi possível carregar os horários disponíveis.", error);
+      setHorarios([]);
+      Alert.alert("Não foi possível carregar os horários", getApiErrorMessage(error, "Verifique sua conexão e tente novamente."));
     });
   }, [route.params.establishmentId, selectedDate]);
   async function handleConfirm() {
@@ -71,9 +80,14 @@ export function BookingScreen() {
       flex: 1,
       backgroundColor: colors.bg,
       alignItems: "center",
-      justifyContent: "center"
+      justifyContent: "center",
+      padding: spacing.lg
     }}>
-        <ActivityIndicator color={colors.primary} />
+        {establishmentLoadError ? <Text style={{
+        color: colors.inkSoft,
+        fontFamily: fonts.regular,
+        textAlign: "center"
+      }}>Não foi possível carregar o estabelecimento. Verifique a conexão e tente novamente.</Text> : <ActivityIndicator color={colors.primary} />}
       </View>;
   }
   const especialidadesDisponiveis = establishment.especialidades ?? ["Clínica Geral"];

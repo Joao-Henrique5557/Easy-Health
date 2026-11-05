@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Text, View } from "react-native";
+import { AppAlert as Alert } from "@/services/appAlert";
 import { Ionicons } from "@expo/vector-icons";
 import { useRoute } from "@react-navigation/native";
 import { colors } from "@/theme/colors";
@@ -7,18 +8,43 @@ import { fonts, radius, spacing } from "@/theme/typography";
 import { PrimaryButton, SecondaryButton } from "@/components/Buttons";
 import { useAppNavigation } from "@/navigation/useAppNavigation";
 import { bookingService } from "@/services/bookingService";
+import { calendarService } from "@/services/calendarService";
 import { formatDateLong } from "@/utils/date";
 export function BookingConfirmationScreen() {
   const navigation = useAppNavigation();
   const route = useRoute();
   const [booking, setBooking] = useState(null);
+  const [busy, setBusy] = useState(null);
   useEffect(() => {
-    bookingService.getById(route.params.bookingId).then(setBooking);
-  }, [route.params.bookingId]);
-  function handleAddToCalendar() {
-    // Integração real usaria expo-calendar (API nativa do Android/iOS) com
-    // permissão de calendário — deixado como próximo passo do backlog.
-    Alert.alert("Em breve", "Adicionar ao calendário do sistema será implementado com expo-calendar.");
+    let active = true;
+    bookingService.getById(route.params.bookingId)
+      .then(data => {
+        if (active) setBooking(data);
+      })
+      .catch(error => {
+        Alert.alert("Não foi possível carregar a consulta", error.message || "Tente novamente.");
+        if (active) navigation.goBack();
+      });
+    return () => {
+      active = false;
+    };
+  }, [navigation, route.params.bookingId]);
+  async function handleAddToCalendar() {
+    if (!booking || busy) return;
+    setBusy("calendar");
+    try {
+      await calendarService.addBooking(booking);
+      Alert.alert(
+        "Consulta adicionada",
+        Platform.OS === "web"
+          ? "O arquivo do calendário foi baixado. Abra-o para importar a consulta."
+          : "O evento foi adicionado ao calendário do dispositivo."
+      );
+    } catch (error) {
+      Alert.alert("Não foi possível adicionar ao calendário", error.message || "Tente novamente.");
+    } finally {
+      setBusy(null);
+    }
   }
   if (!booking) {
     return <View style={{
@@ -179,7 +205,7 @@ export function BookingConfirmationScreen() {
       gap: 10
     }}>
         <PrimaryButton label="Voltar ao Início" onPress={() => navigation.navigate("MainTabs")} />
-        <SecondaryButton label="Adicionar ao Calendário" icon="calendar-outline" onPress={handleAddToCalendar} />
+        <SecondaryButton label="Adicionar ao Calendário" icon="calendar-outline" loading={busy === "calendar"} onPress={handleAddToCalendar} />
       </View>
     </View>;
 }

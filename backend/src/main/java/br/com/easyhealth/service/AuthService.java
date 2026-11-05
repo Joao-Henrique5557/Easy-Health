@@ -16,6 +16,7 @@ import br.com.easyhealth.dto.RegisterRequest;
 import br.com.easyhealth.model.User;
 import br.com.easyhealth.repository.TokenRepository;
 import br.com.easyhealth.repository.UserRepository;
+import br.com.easyhealth.service.GoogleTokenVerifier.GoogleIdentity;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,35 @@ public class AuthService {
                 .filter(found -> passwords.matches(request.senha(), found.senhaHash()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                         "Credenciais inválidas."));
+        return sessionResponse(user);
+    }
+
+    @Transactional
+    public Map<String, Object> loginWithGoogle(GoogleIdentity identity) {
+        String linkedUserId = jdbc.query("""
+                SELECT user_id FROM oauth_identities
+                WHERE provider = 'google' AND subject = ?
+                """, (row, index) -> row.getString("user_id"), identity.subject())
+                .stream().findFirst().orElse(null);
+        User user;
+        if (linkedUserId != null) {
+            user = users.findById(linkedUserId).orElseThrow(() ->
+                    new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Conta Google não vinculada."));
+        } else {
+            String email = identity.email().trim().toLowerCase(java.util.Locale.ROOT);
+            user = users.findByEmail(email).orElseGet(() -> users.create(
+                    identity.name().trim(),
+                    email,
+                    passwords.encode(Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes(32))),
+                    null,
+                    null));
+            users.verifyEmail(email);
+            jdbc.update("""
+                    INSERT INTO oauth_identities (provider, subject, user_id)
+                    VALUES ('google', ?, ?)
+                    """, identity.subject(), user.id());
+            user = users.findById(user.id()).orElseThrow();
+        }
         return sessionResponse(user);
     }
 
@@ -162,11 +192,16 @@ public class AuthService {
     }
 
     private String issueToken(String userId, String type, Instant expiresAt) {
-        byte[] bytes = new byte[32];
-        RANDOM.nextBytes(bytes);
+        byte[] bytes = randomBytes(32);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
         tokens.save(hash(token), userId, type, expiresAt);
         return token;
+    }
+
+    private static byte[] randomBytes(int size) {
+        byte[] bytes = new byte[size];
+        RANDOM.nextBytes(bytes);
+        return bytes;
     }
 
     private static String readAccessToken(HttpServletRequest request) {

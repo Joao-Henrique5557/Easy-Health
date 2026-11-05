@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from "react-native";
+import { AppAlert as Alert } from "@/services/appAlert";
+import * as ImagePicker from "expo-image-picker";
 import { useNavigation } from "@react-navigation/native";
 import { colors } from "@/theme/colors";
 import { fonts, spacing } from "@/theme/typography";
@@ -43,8 +45,11 @@ export function EditProfileScreen() {
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [updatingAvatar, setUpdatingAvatar] = useState(false);
   useEffect(() => {
     profileService.getMe().then(p => {
+      setAvatarUrl(p.avatarUrl ?? null);
       setForm({
         nome: p.nome ?? "",
         email: p.email ?? "",
@@ -82,10 +87,54 @@ export function EditProfileScreen() {
       setSaving(false);
     }
   }
-  function handleChangePhoto() {
-    // Seleção real de imagem usaria expo-image-picker (API de galeria/câmera
-    // do Android/iOS) — deixado como próximo passo do backlog.
-    Alert.alert("Em breve", "A troca de foto de perfil ainda está em desenvolvimento.");
+  async function handleChangePhoto() {
+    try {
+      if (updatingAvatar) return;
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert("Permissão necessária", "Permita o acesso às fotos para escolher uma imagem de perfil.");
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+        base64: true
+      });
+      if (result.canceled) return;
+      const image = result.assets[0];
+      if (!image?.base64) {
+        Alert.alert("Imagem indisponível", "Não foi possível ler a imagem selecionada.");
+        return;
+      }
+      if (image.mimeType && !["image/jpeg", "image/png"].includes(image.mimeType)) {
+        Alert.alert("Formato não suportado", "Escolha uma imagem JPEG ou PNG.");
+        return;
+      }
+      setUpdatingAvatar(true);
+      const saved = await profileService.updateAvatar(
+        `data:${image.mimeType === "image/png" ? "image/png" : "image/jpeg"};base64,${image.base64}`
+      );
+      setAvatarUrl(saved.avatarUrl ?? null);
+      Alert.alert("Foto atualizada", "Sua foto de perfil foi salva.");
+    } catch (error) {
+      Alert.alert("Não foi possível atualizar a foto", getApiErrorMessage(error, "Tente novamente."));
+    } finally {
+      setUpdatingAvatar(false);
+    }
+  }
+  async function handleRemovePhoto() {
+    setUpdatingAvatar(true);
+    try {
+      await profileService.removeAvatar();
+      setAvatarUrl(null);
+      Alert.alert("Foto removida", "A foto de perfil foi removida.");
+    } catch (error) {
+      Alert.alert("Não foi possível remover a foto", getApiErrorMessage(error, "Tente novamente."));
+    } finally {
+      setUpdatingAvatar(false);
+    }
   }
   return <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{
     flex: 1,
@@ -103,15 +152,21 @@ export function EditProfileScreen() {
           alignItems: "center",
           marginBottom: 24
         }}>
-              <Avatar size={84} editable onPressEdit={handleChangePhoto} />
+              <Avatar uri={avatarUrl} size={84} editable onPressEdit={handleChangePhoto} />
               <Text style={{
             fontFamily: fonts.semiBold,
             fontSize: 12.5,
             color: colors.primary,
             marginTop: 10
           }}>
-                Alterar foto de perfil
+                {updatingAvatar ? "Salvando foto..." : "Alterar foto de perfil"}
               </Text>
+              {avatarUrl && <Text onPress={handleRemovePhoto} style={{
+                color: colors.alertDark,
+                fontFamily: fonts.semiBold,
+                fontSize: 12,
+                marginTop: 8
+              }}>Remover foto</Text>}
             </View>
 
             <Field label="Nome completo" value={form.nome} onChangeText={v => setForm({

@@ -43,5 +43,15 @@ export const profileService = {
     } = await api.put("/api/users/me", payload);
     return data;
   },
+  async updateAvatar(avatarUrl) {
+    const { data } = await api.patch("/api/users/me/avatar", {
+      avatarUrl
+    });
+    return data;
+  },
+  async removeAvatar() {
+    const { data } = await api.delete("/api/users/me/avatar");
+    return data;
+  },
   calcularIdade
 };

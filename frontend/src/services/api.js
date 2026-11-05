@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { create, post } from 'axios';
 import { API_URL } from '@/config/env';
 import { tokenStorage } from './tokenStorage';
 let isRefreshing = false;
@@ -10,7 +10,7 @@ const settlePendingRequests = (error, token) => {
   });
   pendingQueue = [];
 };
-export const api = axios.create({
+export const api = create({
   baseURL: API_URL,
   timeout: 10000
 });
@@ -52,7 +52,7 @@ api.interceptors.response.use(response => response, async error => {
     if (!refreshToken) throw error;
     const {
       data
-    } = await axios.post(`${API_URL}/api/auth/refresh-token`, {
+    } = await post(`${API_URL}/api/auth/refresh-token`, {
       refreshToken
     });
     await tokenStorage.setTokens(data.accessToken, data.refreshToken);

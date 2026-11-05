@@ -44,9 +44,10 @@ public class PersonalDataController {
         LocalDate today = LocalDate.now(BRAZIL_ZONE);
         LocalTime now = LocalTime.now(BRAZIL_ZONE);
         return jdbc.query("""
-                SELECT a.id, a.user_id, a.establishment_id, e.nome AS establishment_name,
+                SELECT a.id, a.user_id, a.establishment_id, i.nome AS establishment_name,
                     a.especialidade, a.data, a.horario, a.status
-                FROM appointments a JOIN establishments e ON e.id = a.establishment_id
+                FROM appointments a
+                JOIN easyhealth_institutions.instituicoes_saude i ON i.id = a.establishment_id
                 WHERE a.user_id = ? AND a.status IN ('agendado', 'confirmado')
                     AND (a.data > ? OR (a.data = ? AND a.horario >= ?))
                 ORDER BY a.data, a.horario
@@ -145,9 +146,10 @@ public class PersonalDataController {
     public List<Map<String, Object>> favorites(HttpServletRequest request) {
         String userId = auth.requireUserId(request);
         return jdbc.query("""
-                SELECT e.id, e.nome, e.tipo, e.rede_atendimento, e.endereco,
-                    e.latitude, e.longitude, e.status
-                FROM favorites f JOIN establishments e ON e.id = f.establishment_id
+                SELECT i.id, i.nome, i.tipo, i.rede_atendimento, i.endereco_completo AS endereco,
+                    i.latitude, i.longitude, i.status
+                FROM favorites f
+                JOIN easyhealth_institutions.instituicoes_saude i ON i.id = f.establishment_id
                 WHERE f.user_id = ? ORDER BY f.created_at DESC
                 """, (row, index) -> {
             Map<String, Object> place = new LinkedHashMap<>();
@@ -170,7 +172,8 @@ public class PersonalDataController {
         String userId = auth.requireUserId(request);
         String establishmentId = required(body, "estabelecimentoId");
         Integer found = jdbc.queryForObject(
-                "SELECT count(*) FROM establishments WHERE id = ?", Integer.class, establishmentId);
+                "SELECT count(*) FROM easyhealth_institutions.instituicoes_saude WHERE id = ?",
+                Integer.class, establishmentId);
         if (found == null || found == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Estabelecimento não encontrado.");
         }
@@ -242,9 +245,10 @@ public class PersonalDataController {
     public List<Map<String, Object>> consultationHistory(HttpServletRequest request) {
         String userId = auth.requireUserId(request);
         return jdbc.query("""
-                SELECT a.id, a.user_id, a.establishment_id, e.nome AS establishment_name,
+                SELECT a.id, a.user_id, a.establishment_id, i.nome AS establishment_name,
                     a.especialidade, a.data, a.horario, a.status
-                FROM appointments a JOIN establishments e ON e.id = a.establishment_id
+                FROM appointments a
+                JOIN easyhealth_institutions.instituicoes_saude i ON i.id = a.establishment_id
                 WHERE a.user_id = ? AND a.status IN ('concluido', 'cancelado')
                 ORDER BY a.data DESC, a.horario DESC
                 """, (row, index) -> bookingView(
@@ -289,22 +293,31 @@ public class PersonalDataController {
         return slot;
     }
 
-    /** Trava a linha do estabelecimento para serializar agendamentos concorrentes no mesmo local. */
+    /** Trava uma linha local para serializar reservas concorrentes no estabelecimento. */
     private void lockEstablishment(String establishmentId) {
         try {
-            jdbc.queryForObject("SELECT id FROM establishments WHERE id = ? FOR UPDATE", String.class,
-                    establishmentId);
+            jdbc.queryForObject("""
+                    SELECT id FROM easyhealth_institutions.instituicoes_saude WHERE id = ?
+                    """, String.class, establishmentId);
         } catch (org.springframework.dao.EmptyResultDataAccessException exception) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Estabelecimento não encontrado ou agendamento inválido.");
         }
+        jdbc.update("""
+                INSERT IGNORE INTO establishment_booking_locks (establishment_id) VALUES (?)
+                """, establishmentId);
+        jdbc.queryForObject("""
+                SELECT establishment_id FROM establishment_booking_locks
+                WHERE establishment_id = ? FOR UPDATE
+                """, String.class, establishmentId);
     }
 
     private Map<String, Object> findBooking(String id, String userId) {
         return jdbc.query("""
-                SELECT a.id, a.user_id, a.establishment_id, e.nome AS establishment_name,
+                SELECT a.id, a.user_id, a.establishment_id, i.nome AS establishment_name,
                     a.especialidade, a.data, a.horario, a.status
-                FROM appointments a JOIN establishments e ON e.id = a.establishment_id
+                FROM appointments a
+                JOIN easyhealth_institutions.instituicoes_saude i ON i.id = a.establishment_id
                 WHERE a.id = ? AND a.user_id = ?
                 """, (row, index) -> bookingView(
                         row.getString("id"), row.getString("user_id"), row.getString("establishment_id"),
