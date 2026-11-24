@@ -25,11 +25,16 @@ import {
 } from "@/utils/calendar";
 import { formatLocalDateISO } from "@/utils/date";
 import { getApiErrorMessage } from "@/utils/apiError";
-const DOCTOR_PREVIEW = {
-  nome: "Dr. Carlos Mendes",
-  crm: "CRM 12345",
-  valor: "R$ 280",
-};
+
+const FALLBACK_DOCTORS = [
+  {
+    id: "demo-medico",
+    nome: "Dra. Ana Médica",
+    crm: "CRM-SP",
+    valor: "R$ 280",
+  },
+];
+
 export function BookingScreen() {
   const navigation = useAppNavigation();
   const route = useRoute();
@@ -44,8 +49,27 @@ export function BookingScreen() {
   const [horarios, setHorarios] = useState([]);
   const [selectedHorario, setSelectedHorario] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const doctors =
+    establishment?.medicos?.length > 0
+      ? establishment.medicos
+      : FALLBACK_DOCTORS;
+  const [selectedMedicoId, setSelectedMedicoId] = useState(
+    FALLBACK_DOCTORS[0].id,
+  );
+
+  useEffect(() => {
+    if (doctors.length > 0) {
+      setSelectedMedicoId(doctors[0].id);
+    }
+  }, [establishment]);
+
+  const selectedDoctor =
+    doctors.find((d) => d.id === selectedMedicoId) ?? doctors[0];
+
   const grid = useMemo(() => getMonthGrid(monthRef), [monthRef]);
   const weekdayLabels = getWeekdayLabels();
+
   useEffect(() => {
     establishmentsService
       .getById(route.params.establishmentId)
@@ -61,6 +85,7 @@ export function BookingScreen() {
         setEstablishmentLoadError(true);
       });
   }, [route.params.establishmentId]);
+
   useEffect(() => {
     establishmentsService
       .getHorariosDisponiveis(route.params.establishmentId, selectedDate)
@@ -80,6 +105,7 @@ export function BookingScreen() {
         );
       });
   }, [route.params.establishmentId, selectedDate]);
+
   async function handleConfirm() {
     if (!selectedHorario) {
       Alert.alert(
@@ -93,6 +119,7 @@ export function BookingScreen() {
       const booking = await bookingService.create({
         establishmentId: route.params.establishmentId,
         especialidade,
+        medicoId: selectedDoctor?.id || "demo-medico",
         data: selectedDate,
         horario: selectedHorario,
       });
@@ -108,6 +135,7 @@ export function BookingScreen() {
       setSubmitting(false);
     }
   }
+
   if (!establishment) {
     return (
       <View
@@ -136,9 +164,11 @@ export function BookingScreen() {
       </View>
     );
   }
+
   const especialidadesDisponiveis = establishment.especialidades ?? [
     "Clínica Geral",
   ];
+
   return (
     <ScrollView
       style={{
@@ -475,7 +505,7 @@ export function BookingScreen() {
               color: colors.ink,
             }}
           >
-            {DOCTOR_PREVIEW.nome}
+            {selectedDoctor.nome}
           </Text>
           <Text
             style={{
@@ -484,7 +514,7 @@ export function BookingScreen() {
               color: colors.inkSoft,
             }}
           >
-            {especialidade} • {DOCTOR_PREVIEW.crm}
+            {especialidade} • {selectedDoctor.crm ?? "CRM"}
           </Text>
         </View>
         <Text
@@ -495,7 +525,7 @@ export function BookingScreen() {
             color: colors.primary,
           }}
         >
-          {DOCTOR_PREVIEW.valor}
+          {selectedDoctor.valor ?? "R$ 280"}
         </Text>
       </View>
 

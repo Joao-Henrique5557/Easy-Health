@@ -1,3 +1,6 @@
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
+
 -- ============================================================
 -- EASY HEALTH - ESQUEMA DO CATÁLOGO DE INSTITUIÇÕES
 -- ============================================================
@@ -7,6 +10,8 @@
 -- Este arquivo cria somente o banco, as tabelas e os índices. Os dados de
 -- demonstração ficam separados em 03_dados_exemplo_instituicoes.sql.
 -- ============================================================
+SET NAMES utf8mb4;
+SET CHARACTER SET utf8mb4;
 
 SET @easyhealth_app_database = DATABASE();
 
