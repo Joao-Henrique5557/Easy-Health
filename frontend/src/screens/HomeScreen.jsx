@@ -260,7 +260,7 @@ export function HomeScreen() {
             label="Agendamentos"
             desc="Gerenciar consultas"
             icon="calendar-outline"
-            onPress={() => navigation.navigate("History")}
+            onPress={() => navigation.navigate("Search")}
           />
 
           <Tile

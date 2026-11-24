@@ -7,7 +7,9 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "android": {
       "versionCode": 2,
       "package": "br.com.easyhealth.app",
@@ -86,9 +88,9 @@
     "extra": {
       "apiUrl": "http://localhost:3333",
       "eas": {
-        "projectId": "25c4d129-ea78-4043-9710-f91ee6233bb1"
+        "projectId": "8b7a691b-a1c3-4061-8acf-f03a4e2fa2bd"
       }
     },
-    "owner": "joao-henrique5557"
+    "owner": "caiol"
   }
 }
