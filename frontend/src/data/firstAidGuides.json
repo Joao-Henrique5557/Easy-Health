@@ -2,6 +2,7 @@
   {
     "id": "desmaio",
     "titulo": "Desmaios",
+    "youtubeId": "7YbDPGi9Fuo",
     "resumo": "Perda súbita e breve de consciência.",
     "icon": "help-circle-outline",
     "passos": [
@@ -14,6 +15,7 @@
   {
     "id": "engasgo",
     "titulo": "Engasgos",
+    "videoDriveId": "17h4XMcoV0M4yYvUWbuUsXbpDkwirqFMc",
     "resumo": "Obstrução das vias aéreas por alimento ou objeto.",
     "icon": "pulse-outline",
     "passos": [
@@ -26,6 +28,7 @@
   {
     "id": "queimadura",
     "titulo": "Queimaduras",
+    "youtubeId": "QUP4KOQbAaQ",
     "resumo": "Lesão por calor, produto químico ou eletricidade.",
     "icon": "flame-outline",
     "passos": [
@@ -38,6 +41,7 @@
   {
     "id": "convulsao",
     "titulo": "Convulsões",
+    "youtubeId": "gv2SsxwboCc",
     "resumo": "Crise convulsiva com movimentos involuntários.",
     "icon": "shield-outline",
     "passos": [
@@ -50,6 +54,7 @@
   {
     "id": "sangramento",
     "titulo": "Hemorragias",
+    "youtubeId": "gv2SsxwboCc",
     "resumo": "Ferimento com perda de sangue significativa.",
     "icon": "warning-outline",
     "passos": [
@@ -62,6 +67,7 @@
   {
     "id": "parada",
     "titulo": "Parada Cardíaca",
+    "youtubeId": "gv2SsxwboCc",
     "resumo": "Pessoa não responde e não respira normalmente.",
     "icon": "heart-outline",
     "passos": [
@@ -74,6 +80,7 @@
   {
     "id": "crises_respiratorias",
     "titulo": "Crises Respiratórias",
+    "youtubeId": "W8qdNVBcvjw",
     "resumo": "Falta de ar súbita ou crise de asma/bronquite.",
     "icon": "fitness-outline",
     "passos": [
@@ -86,6 +93,7 @@
   {
     "id": "fraturas",
     "titulo": "Fraturas",
+    "youtubeId": "W8qdNVBcvjw",
     "resumo": "Suspeita de osso quebrado ou luxação.",
     "icon": "bandage-outline",
     "passos": [
