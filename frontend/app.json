@@ -86,11 +86,11 @@
       "expo-status-bar"
     ],
     "extra": {
-      "apiUrl": "http://localhost:3333",
+      "apiUrl": "http://192.168.3.52:3333",
       "eas": {
         "projectId": "8b7a691b-a1c3-4061-8acf-f03a4e2fa2bd"
       }
     },
-    "owner": "caiol"
+    "owner": "Equipe Easy Health"
   }
 }
