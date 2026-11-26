@@ -10,6 +10,7 @@ import { firstAidService } from "@/services/firstAidService";
 import { emergencyService } from "@/services/emergencyService";
 import { EMERGENCY_NUMBERS } from "@/config/env";
 import { useToast } from "@/components/Toast";
+import { VideoCard } from '../components/VideoCard';
 export function FirstAidDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
@@ -157,6 +158,13 @@ export function FirstAidDetailScreen() {
           marginBottom: 24,
         }}
       >
+  {(guide?.videoDriveId || guide?.youtubeId) && (
+  <VideoCard
+    driveId={guide.videoDriveId}
+    youtubeId={guide.youtubeId}
+    titulo={`Vídeo: ${guide.titulo}`}
+  />
+)}
         {guide.passos.map((passo, i) => {
           const [titulo, ...resto] = passo.split(": ");
           const temTitulo = resto.length > 0;
