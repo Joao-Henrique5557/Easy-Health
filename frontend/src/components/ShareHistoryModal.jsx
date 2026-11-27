@@ -18,26 +18,41 @@ import { historyShareService } from "@/services/historyShareService";
 export function ShareHistoryModal({ visible, onClose }) {
   const [medicoId, setMedicoId] = useState("");
   const [shares, setShares] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const loadShares = useCallback(async () => {
-    setLoading(true);
+    return historyShareService.listShares();
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return undefined;
+    let active = true;
+    loadShares()
+      .then((list) => {
+        if (active) setShares(list);
+      })
+      .catch(() => {
+        if (active) setShares([]);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [visible, loadShares]);
+
+  async function refreshShares() {
     try {
-      const list = await historyShareService.listShares();
-      setShares(list);
+      setShares(await loadShares());
     } catch {
       setShares([]);
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    if (visible) {
-      loadShares();
-    }
-  }, [visible, loadShares]);
+  }
 
   async function handleShare() {
     if (!medicoId.trim()) {
@@ -49,7 +64,8 @@ export function ShareHistoryModal({ visible, onClose }) {
     try {
       await historyShareService.shareWithDoctor(medicoId);
       setMedicoId("");
-      await loadShares();
+      setLoading(true);
+      await refreshShares();
       Alert.alert("Sucesso", "Histórico compartilhado com o médico.");
     } catch (error) {
       const msg =
@@ -64,7 +80,8 @@ export function ShareHistoryModal({ visible, onClose }) {
   async function handleRevoke(id) {
     try {
       await historyShareService.revokeShare(id);
-      await loadShares();
+      setLoading(true);
+      await refreshShares();
     } catch {
       Alert.alert("Erro", "Não foi possível revogar o acesso.");
     }
@@ -76,7 +93,12 @@ export function ShareHistoryModal({ visible, onClose }) {
         <View style={styles.sheet}>
           <View style={styles.header}>
             <Text style={styles.title}>Compartilhar Histórico</Text>
-            <Pressable onPress={onClose}>
+            <Pressable
+              onPress={() => {
+                setLoading(true);
+                onClose();
+              }}
+            >
               <Ionicons name="close" size={24} color={colors.inkSoft} />
             </Pressable>
           </View>

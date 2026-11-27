@@ -17,6 +17,7 @@ import { profileService } from "@/services/profileService";
 export function EstablishmentReviewsSection({ establishmentId }) {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadedEstablishmentId, setLoadedEstablishmentId] = useState(null);
   const [nota, setNota] = useState(5);
   const [comentario, setComentario] = useState("");
   const [hasMyReview, setHasMyReview] = useState(false);
@@ -24,13 +25,13 @@ export function EstablishmentReviewsSection({ establishmentId }) {
 
   const loadData = useCallback(async () => {
     if (!establishmentId) return;
-    setLoading(true);
     try {
       const [list, me] = await Promise.all([
         reviewsService.listByEstablishment(establishmentId),
         profileService.getMe().catch(() => null),
       ]);
       setReviews(list);
+      setLoadedEstablishmentId(establishmentId);
 
       if (me) {
         const mine = list.find(
@@ -53,8 +54,44 @@ export function EstablishmentReviewsSection({ establishmentId }) {
   }, [establishmentId]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if (!establishmentId) return undefined;
+    let active = true;
+    Promise.all([
+      reviewsService.listByEstablishment(establishmentId),
+      profileService.getMe().catch(() => null),
+    ])
+      .then(([list, me]) => {
+        if (!active) return;
+        setReviews(list);
+        setLoadedEstablishmentId(establishmentId);
+        if (me) {
+          const mine = list.find(
+            (r) =>
+              r.usuarioId === me.id ||
+              r.pacienteId === me.id ||
+              (r.autorNome && r.autorNome === me.nome)
+          );
+          if (mine) {
+            setHasMyReview(true);
+            setNota(mine.nota || 5);
+            setComentario(mine.comentario || "");
+          }
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setReviews([]);
+          setLoadedEstablishmentId(establishmentId);
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [establishmentId]);
 
   async function handleSubmit() {
     if (!comentario.trim()) {
@@ -88,6 +125,7 @@ export function EstablishmentReviewsSection({ establishmentId }) {
       }
 
       setHasMyReview(true);
+      setLoading(true);
       await loadData();
       Alert.alert(
         "Avaliação salva",
@@ -168,7 +206,7 @@ export function EstablishmentReviewsSection({ establishmentId }) {
         </Pressable>
       </View>
 
-      {loading ? (
+      {loading || loadedEstablishmentId !== establishmentId ? (
         <ActivityIndicator color={colors.primary} style={{ marginTop: 12 }} />
       ) : reviews.length === 0 ? (
         <Text style={styles.emptyText}>

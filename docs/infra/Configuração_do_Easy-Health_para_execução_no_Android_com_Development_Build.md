@@ -56,13 +56,13 @@ Portanto, não era necessário instalar essas dependências novamente.
 Verificamos a disponibilidade do EAS CLI:
 
 ```bash
-npx eas-cli --version
+cd frontend && npx eas-cli --version
 ```
 
 Em seguida, analisamos o arquivo `eas.json`:
 
 ```bash
-cat eas.json
+cd frontend && cat eas.json
 ```
 
 Identificamos que já existia um perfil chamado `development`, configurado para gerar um APK:
@@ -89,7 +89,7 @@ Essa configuração permite gerar um aplicativo de desenvolvimento com os módul
 A compilação foi planejada para acontecer nos servidores do Expo, utilizando:
 
 ```bash
-npx eas-cli build --platform android --profile development
+cd frontend && npx eas-cli build --platform android --profile development
 ```
 
 Esse processo gera um APK de desenvolvimento sem exigir que o computador execute localmente a compilação do Gradle.
@@ -114,7 +114,7 @@ Isso confirmou que o Android aceitou a instalação.
 O pacote utilizado para abrir o aplicativo é:
 
 ```text
-br.com.easyhealth.app
+com.joaohenrique5557.easyhealth
 ```
 
 ### Passo 5 — Configuração da conexão USB
@@ -158,7 +158,7 @@ adb reverse tcp:8083 tcp:8083
 Para iniciar o Easy-Health pelo terminal, utilizamos:
 
 ```bash
-adb shell monkey -p br.com.easyhealth.app 1
+adb shell monkey -p com.joaohenrique5557.easyhealth 1
 ```
 
 O comando foi executado com sucesso e abriu o Development Build.
@@ -195,7 +195,7 @@ npx expo start --dev-client --localhost --port 8083
 **4.** Abrir o Easy-Health:
 
 ```bash
-adb shell monkey -p br.com.easyhealth.app 1
+adb shell monkey -p com.joaohenrique5557.easyhealth 1
 ```
 
 Não será necessário gerar e instalar um novo APK a cada alteração de código JavaScript ou React Native.

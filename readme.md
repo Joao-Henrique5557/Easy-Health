@@ -114,7 +114,7 @@ O login com Google requer um development build (não funciona no Expo Go) e Clie
 configurados no Google Cloud Console. O frontend precisa de
 `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`; o backend deve aceitar esse ID em
 `GOOGLE_OAUTH_CLIENT_IDS`. Configure o cliente Android para o pacote
-`br.com.easyhealth.app` e o SHA-1 do certificado que assina o build. Nunca coloque Client
+`com.joaohenrique5557.easyhealth` e o SHA-1 do certificado que assina o build. Nunca coloque Client
 Secrets no aplicativo. O passo a passo está no [README do frontend](./frontend/README.md#login-com-google).
 
 Configure a URL da API por `EXPO_PUBLIC_API_URL` ou em `frontend/app.json`, no campo
@@ -144,6 +144,7 @@ um celular físico.
 Gere o APK:
 
 ```bash
+cd frontend
 npx eas-cli@latest build --platform android --profile preview
 ```
 

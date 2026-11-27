@@ -58,12 +58,6 @@ export function BookingScreen() {
     FALLBACK_DOCTORS[0].id,
   );
 
-  useEffect(() => {
-    if (doctors.length > 0) {
-      setSelectedMedicoId(doctors[0].id);
-    }
-  }, [establishment]);
-
   const selectedDoctor =
     doctors.find((d) => d.id === selectedMedicoId) ?? doctors[0];
 
@@ -76,6 +70,9 @@ export function BookingScreen() {
       .then((data) => {
         setEstablishment(data ?? null);
         setEspecialidade(data?.especialidades?.[0] ?? "Clínica Geral");
+        setSelectedMedicoId(
+          data?.medicos?.[0]?.id ?? FALLBACK_DOCTORS[0].id,
+        );
       })
       .catch((error) => {
         console.error(

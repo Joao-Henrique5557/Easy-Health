@@ -73,16 +73,24 @@ processo, não muda qual IP o celular usa para alcançá-lo. Detalhes e comentá
 
 ## Gerar APK Android
 
-O perfil `preview` em [`eas.json`](./eas.json) gera um APK instalável usando o EAS Build,
-na nuvem. É necessário ter uma conta Expo e acesso à internet; não é necessário instalar
-o Android SDK localmente.
+Os perfis `development` e `preview` em [`eas.json`](./eas.json) geram APKs instaláveis
+usando o EAS Build na nuvem. O perfil `development` inclui o cliente de desenvolvimento;
+`preview` gera um APK sem ele. É necessário ter uma conta Expo e acesso à internet; não é
+necessário instalar o Android SDK localmente.
+Os comandos devem ser executados a partir da raiz do repositório entrando em `frontend/`;
+executá-los na raiz usa os arquivos Expo de outro projeto.
 
-Na primeira execução, autentique-se e vincule o projeto a uma conta Expo:
+Na primeira execução, entre na pasta do frontend e autentique-se na conta Expo que tem
+acesso ao projeto já vinculado em `app.json`:
 
 ```bash
+cd frontend
 npx eas-cli@latest login
-npx eas-cli@latest init
+npx eas-cli@latest whoami
 ```
+
+Não rode `eas init` para este projeto: o ID já está configurado. Se o EAS indicar falta
+de permissão, troque para a conta proprietária ou peça acesso ao projeto.
 
 Configure `EXPO_PUBLIC_API_URL` nas variáveis do projeto Expo para o ambiente **preview**.
 O valor deve ser uma URL acessível pelo aparelho, como o IP local do computador na mesma
@@ -92,6 +100,7 @@ um celular físico.
 Gere o APK de desenvolvimento com:
 
 ```bash
+cd frontend
 npx eas-cli@latest build --platform android --profile development
 ```
 

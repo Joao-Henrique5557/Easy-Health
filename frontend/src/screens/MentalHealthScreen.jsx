@@ -32,7 +32,7 @@ export function MentalHealthScreen({ navigation }) {
       try {
         const list = await mentalHealthService.list();
         if (active) setGuides(list);
-      } catch (error) {
+      } catch {
         if (active) {
           Alert.alert("Erro", "Não foi possível carregar os guias de saúde mental.");
         }

@@ -68,46 +68,70 @@ export function TeamPanelScreen() {
   const [memberCargo, setMemberCargo] = useState("funcionario");
   const [savingMember, setSavingMember] = useState(false);
 
+  const fetchAll = useCallback(async () => {
+    const [painelRes, clinicasRes, me] = await Promise.all([
+      teamService.getPainel(),
+      teamService.listMinhasClinicas().catch(() => []),
+      profileService.getMe().catch(() => null),
+    ]);
+
+    const cargo = painelRes?.cargo || me?.cargo;
+    const adminData =
+      cargo === "dono"
+        ? await teamService.getAdministracao().catch(() => null)
+        : null;
+    return { painelRes, clinicasRes, adminData };
+  }, []);
+
+  const applyAllData = useCallback(({ painelRes, clinicasRes, adminData }) => {
+    setPainel(painelRes);
+    setClinicas(clinicasRes);
+    setAdminData(adminData);
+  }, []);
+
+  const setLoadError = useCallback((error) => {
+    const status = error?.response?.status;
+    if (status === 401 || status === 403) {
+      setAccessDenied(
+        error?.response?.data?.message ||
+          "Você não tem permissão para acessar o painel da equipe."
+      );
+    } else {
+      setAccessDenied(
+        getApiErrorMessage(error, "Não foi possível carregar o painel.")
+      );
+    }
+  }, []);
+
   const loadAll = useCallback(async () => {
     setLoading(true);
     setAccessDenied(null);
     try {
-      const [painelRes, clinicasRes, me] = await Promise.all([
-        teamService.getPainel(),
-        teamService.listMinhasClinicas().catch(() => []),
-        profileService.getMe().catch(() => null),
-      ]);
-
-      setPainel(painelRes);
-      setClinicas(clinicasRes);
-
-      const cargo = painelRes?.cargo || me?.cargo;
-      if (cargo === "dono") {
-        const adm = await teamService.getAdministracao().catch(() => null);
-        setAdminData(adm);
-      } else {
-        setAdminData(null);
-      }
+      applyAllData(await fetchAll());
     } catch (error) {
-      const status = error?.response?.status;
-      if (status === 401 || status === 403) {
-        setAccessDenied(
-          error?.response?.data?.message ||
-            "Você não tem permissão para acessar o painel da equipe."
-        );
-      } else {
-        setAccessDenied(
-          getApiErrorMessage(error, "Não foi possível carregar o painel.")
-        );
-      }
+      setLoadError(error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyAllData, fetchAll, setLoadError]);
 
   useEffect(() => {
-    loadAll();
-  }, [loadAll]);
+    let active = true;
+    fetchAll()
+      .then((data) => {
+        if (active) applyAllData(data);
+      })
+      .catch((error) => {
+        if (active) setLoadError(error);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [applyAllData, fetchAll, setLoadError]);
 
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));

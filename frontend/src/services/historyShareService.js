@@ -1,4 +1,13 @@
 import { api } from "./api";
+import { authService } from "./authService";
+
+async function getAuthConfig() {
+  const token =
+    (await authService.getAccessToken?.()) ||
+    (await authService.getToken?.()) ||
+    null;
+  return token ? { params: { accessToken: token } } : {};
+}
 
 export const historyShareService = {
   async shareWithDoctor(medicoId) {

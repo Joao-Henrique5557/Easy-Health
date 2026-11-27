@@ -28,21 +28,45 @@ export function MedicationsScreen({ navigation }) {
   const [dosagem, setDosagem] = useState("");
   const [horario, setHorario] = useState("");
 
+  const fetchMedications = useCallback(
+    () => medicationsService.listToday(),
+    [],
+  );
+
   const loadMedications = useCallback(async () => {
     try {
-      const list = await medicationsService.listToday();
+      const list = await fetchMedications();
       setMedications(list);
-    } catch (error) {
+    } catch {
       Alert.alert("Erro", "Não foi possível carregar os medicamentos de hoje.");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [fetchMedications]);
 
   useEffect(() => {
-    loadMedications();
-  }, [loadMedications]);
+    let active = true;
+    fetchMedications()
+      .then((list) => {
+        if (active) setMedications(list);
+      })
+      .catch(() => {
+        if (active) {
+          Alert.alert(
+            "Erro",
+            "Não foi possível carregar os medicamentos de hoje.",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [fetchMedications]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -67,7 +91,7 @@ export function MedicationsScreen({ navigation }) {
       setHorario("");
       setModalVisible(false);
       await loadMedications();
-    } catch (error) {
+    } catch {
       Alert.alert("Erro", "Não foi possível cadastrar o medicamento.");
     } finally {
       setSaving(false);
@@ -79,7 +103,7 @@ export function MedicationsScreen({ navigation }) {
     try {
       await medicationsService.confirmIntake(id);
       await loadMedications();
-    } catch (error) {
+    } catch {
       Alert.alert("Erro", "Não foi possível confirmar a medicação.");
     }
   };

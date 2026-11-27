@@ -29,7 +29,7 @@ export function CaregiversScreen({ navigation }) {
       } else {
         Alert.alert("Aviso", "Não foi possível abrir o navegador neste dispositivo.");
       }
-    } catch (error) {
+    } catch {
       Alert.alert("Erro", "Não foi possível gerar o link de busca de cuidadoras.");
     } finally {
       setLoading(false);

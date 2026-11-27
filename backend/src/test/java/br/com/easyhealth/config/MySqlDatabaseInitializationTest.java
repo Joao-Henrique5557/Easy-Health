@@ -87,7 +87,7 @@ class MySqlDatabaseInitializationTest {
                     "SELECT count(*) FROM users WHERE email = 'maria.silva@email.com'", Integer.class));
             assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM oauth_identities", Integer.class));
             assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM medical_history_records", Integer.class));
-            assertEquals(26, jdbc.queryForObject(
+            assertEquals(47, jdbc.queryForObject(
                     "SELECT count(*) FROM easyhealth_institutions.instituicoes_saude", Integer.class));
             assertEquals(62, jdbc.queryForObject(
                     "SELECT count(*) FROM easyhealth_institutions.instituicao_especialidades", Integer.class));
@@ -140,10 +140,10 @@ class MySqlDatabaseInitializationTest {
 
             assertEquals("senha-alterada", jdbc.queryForObject(
                     "SELECT senha_hash FROM users WHERE id = 'test-user'", String.class));
-            assertEquals(26, jdbc.queryForObject(
+            assertEquals(47, jdbc.queryForObject(
                     "SELECT count(*) FROM easyhealth_institutions.instituicoes_saude", Integer.class));
             assertEquals("maria.silva@email.com", jdbc.queryForObject(
-                    "SELECT email FROM users WHERE id = 'demo-user'", String.class));
+                    "SELECT email FROM users WHERE id = 'demo-paciente-01'", String.class));
             jdbc.update("DELETE FROM users WHERE id = 'test-user'");
         } finally {
             if (schemaInitialized) {

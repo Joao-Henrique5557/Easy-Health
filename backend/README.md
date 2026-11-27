@@ -126,7 +126,7 @@ o hospital.
 Defina `GOOGLE_OAUTH_CLIENT_IDS` no ambiente do backend com o Client ID Web usado como
 audiência do ID token. O frontend usa `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`; para iOS, configure
 também `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`. A configuração Android vincula o pacote
-`br.com.easyhealth.app` ao SHA-1 do certificado do build. Veja o passo a passo no
+`com.joaohenrique5557.easyhealth` ao SHA-1 do certificado do build. Veja o passo a passo no
 [README do frontend](../frontend/README.md#login-com-google). O login nativo requer um
 development build e não funciona no Expo Go. Não compartilhe nem inclua Client Secrets no
 aplicativo. Sem Client IDs, a rota Google responde `503` e o login com senha continua disponível.
